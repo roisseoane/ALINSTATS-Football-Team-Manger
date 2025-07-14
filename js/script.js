@@ -357,94 +357,152 @@ function mostrarEdicionEstadisticasHoja(partidoId) {
     const partido = partits.find(p => p.id == partidoId);
     if (!partido) return;
 
-    elements.modal.popup.classList.add('modal-large');
+    // Lista de estadísticas disponibles
+    const estadisticasDisponibles = [
+        { key: 'goles', nombre: 'Gols' },
+        { key: 'asistencias', nombre: 'Assistències' },
+        { key: 'chutes', nombre: 'Xuts' },
+        { key: 'perdidas', nombre: 'Pèrdues' },
+        { key: 'recuperaciones', nombre: 'Recuperacions' },
+        { key: 'goles_a_favor', nombre: 'Gols a Favor' },
+        { key: 'goles_en_contra', nombre: 'Gols en Contra' }
+    ];
+    let indiceEstadisticaActual = 0; // Goles por defecto
 
-    const form = `
-        <div class="stats-form">
-            <h3>Editar Estadístiques - ${partido.nom}</h3>
-            <div class="stats-table-container">
-                <table class="stats-table-mvp">
-                    <thead>
-                        <tr>
-                            <th>Jugador</th>
-                            <th>Gols</th>
-                            <th>Assistències</th>
-                            <th>Xuts</th>
-                            <th>Pèrdues</th>
-                            <th>Recuperacions</th>
-                            <th>Gols a Favor</th>
-                            <th>Gols en Contra</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${plantilla.map(jugador => {
-                            const stats = partido.estadistiques[jugador.id] || {};
-                            return `
-                                <tr>
-                                    <td>${jugador.nombreMostrado}</td>
-                                    <td><input type="number" min="0" value="${stats.goles || 0}" 
-                                        data-jugador="${jugador.id}" data-stat="goles"></td>
-                                    <td><input type="number" min="0" value="${stats.asistencias || 0}"
-                                        data-jugador="${jugador.id}" data-stat="asistencias"></td>
-                                    <td><input type="number" min="0" value="${stats.chutes || 0}"
-                                        data-jugador="${jugador.id}" data-stat="chutes"></td>
-                                    <td><input type="number" min="0" value="${stats.perdidas || 0}"
-                                        data-jugador="${jugador.id}" data-stat="perdidas"></td>
-                                    <td><input type="number" min="0" value="${stats.recuperaciones || 0}"
-                                        data-jugador="${jugador.id}" data-stat="recuperaciones"></td>
-                                    <td><input type="number" min="0" value="${stats.goles_a_favor || 0}"
-                                        data-jugador="${jugador.id}" data-stat="goles_a_favor"></td>
-                                    <td><input type="number" min="0" value="${stats.goles_en_contra || 0}"
-                                        data-jugador="${jugador.id}" data-stat="goles_en_contra"></td>
-                                </tr>
-                            `;
-                        }).join('')}
+    // Función para renderizar la tabla de una estadística específica
+    const renderizarTablaEstadistica = () => {
+        const estadisticaActual = estadisticasDisponibles[indiceEstadisticaActual];
 
-                        ${Object.keys(partido.estadistiques).length < plantilla.length ? `
-                            <tr class="empty-row">
-                                <td colspan="8" style="text-align: center; color: #aaa;">
-                                    (Sense dades d'estadístiques per a aquest partit)
+        const tablaHTML = `
+            <table class="stats-table-mvp stats-table-edit">
+                <thead>
+                    <tr>
+                        <th>Jugador</th>
+                        <th id="stat-header" class="interactive-header"
+                            data-stat-key="${estadisticaActual.key}">
+                            <span>${estadisticaActual.nombre}</span>
+                            <div class="header-icons">
+                                <i class="fas fa-chevron-up"></i>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${plantilla.map(jugador => {
+                        const stats = partido.estadistiques[jugador.id] || {};
+                        const valor = stats[estadisticaActual.key] || 0;
+                        return `
+                            <tr>
+                                <td>${jugador.nombreMostrado}</td>
+                                <td>
+                                    <input type="number" class="form-control" min="0" value="${valor}"
+                                        data-jugador="${jugador.id}"
+                                        data-stat="${estadisticaActual.key}">
                                 </td>
                             </tr>
-                        ` : ''}
-                    </tbody>
-                </table>
+                        `;
+                    }).join('')}
+                </tbody>
+            </table>
+        `;
+
+        const container = elements.modal.content.querySelector('#stats-table-container');
+        if (container) {
+            container.innerHTML = tablaHTML;
+        }
+    };
+
+    const form = `
+        <div class="modal-header">
+            <h2><i class="fas fa-edit"></i> Editar Estadístiques</h2>
+            <p class="modal-subtitle">${partido.nom}</p>
+        </div>
+        <div class="stats-form">
+            <div id="stats-table-container" class="stats-table-container">
+                <!-- La tabla se renderizará aquí -->
             </div>
-            <div class="form-actions" style="margin-top: 20px;">
-                <button id="btn-guardar-stats" class="nav-btn">Guardar</button>
-                <button id="btn-cancelar-stats" class="nav-btn">Cancel·lar</button>
+            <div class="form-actions">
+                <button id="btn-guardar-stats" class="btn-primary">
+                    <i class="fas fa-save"></i> Guardar
+                </button>
+                <button id="btn-cancelar-stats" class="btn-secondary">
+                    <i class="fas fa-times"></i> Tancar
+                </button>
             </div>
         </div>
     `;
 
     elements.modal.content.innerHTML = form;
+    renderizarTablaEstadistica();
     abrirModal();
+
+    // --- Lógica para cambiar de estadística ---
+    const cambiarEstadistica = (direccion) => {
+        // Guardar el valor actual antes de cambiar
+        const inputs = elements.modal.content.querySelectorAll('input[type="number"]');
+        inputs.forEach(input => {
+            const jugadorId = input.dataset.jugador;
+            const statName = input.dataset.stat;
+            const value = parseInt(input.value) || 0;
+            if (!partido.estadistiques[jugadorId]) partido.estadistiques[jugadorId] = {};
+            partido.estadistiques[jugadorId][statName] = value;
+        });
+
+        // Cambiar al siguiente índice de estadística
+        indiceEstadisticaActual = (indiceEstadisticaActual + direccion + estadisticasDisponibles.length) % estadisticasDisponibles.length;
+
+        // Volver a renderizar la tabla con la nueva estadística
+        renderizarTablaEstadistica();
+        configurarListenersEstadisticas(); // Re-configurar listeners para la nueva tabla
+    };
+
+    const configurarListenersEstadisticas = () => {
+        const header = document.getElementById('stat-header');
+        if (!header) return;
+
+        // Listener para Clic
+        header.onclick = () => cambiarEstadistica(1); // Avanza a la siguiente
+
+        // Listeners para Swipe (gestos táctiles)
+        let touchStartY = 0;
+        let touchEndY = 0;
+
+        header.addEventListener('touchstart', e => {
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        header.addEventListener('touchend', e => {
+            touchEndY = e.changedTouches[0].screenY;
+            if (touchStartY - touchEndY > 50) { // Swipe hacia arriba
+                cambiarEstadistica(1);
+            } else if (touchEndY - touchStartY > 50) { // Swipe hacia abajo
+                cambiarEstadistica(-1);
+            }
+        }, { passive: true });
+    };
+
+    configurarListenersEstadisticas();
 
     // Event listener para guardar los cambios
     document.getElementById('btn-guardar-stats').onclick = () => {
         const inputs = elements.modal.content.querySelectorAll('input[type="number"]');
         
-        // Inicializamos las estadísticas del partido si no existen
         if (!partido.estadistiques) {
             partido.estadistiques = {};
         }
 
-        // Recorremos todos los inputs y guardamos sus valores
         inputs.forEach(input => {
             const jugadorId = input.dataset.jugador;
             const statName = input.dataset.stat;
             const value = parseInt(input.value) || 0;
 
-            // Inicializamos las estadísticas del jugador si no existen
             if (!partido.estadistiques[jugadorId]) {
                 partido.estadistiques[jugadorId] = {};
             }
-
-            // Guardamos el valor
             partido.estadistiques[jugadorId][statName] = value;
         });
 
-        // Actualizamos la vista
         guardarDatos();
         cerrarModal();
         renderizarEstadistiques();

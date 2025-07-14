@@ -326,6 +326,54 @@ section {
     padding-left: 15px;
 }
 
+/* Estilos para la nueva tabla de edición de estadísticas */
+.stats-table-edit {
+    min-width: 0; /* Anular el min-width para el modo de edición */
+}
+
+.stats-table-edit th, .stats-table-edit td {
+    white-space: normal; /* Permitir que el texto se ajuste */
+}
+
+.stats-table-edit td .form-control {
+    padding: 8px 10px;
+    font-size: 0.9rem;
+    text-align: center;
+    -moz-appearance: textfield; /* Para Firefox */
+}
+
+.stats-table-edit td .form-control::-webkit-outer-spin-button,
+.stats-table-edit td .form-control::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.interactive-header {
+    position: relative;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+.interactive-header .header-icons {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    color: #00aaff;
+}
+
+.interactive-header .header-icons i {
+    transition: transform 0.2s;
+}
+
+.interactive-header:hover .header-icons i {
+    transform: scale(1.2);
+}
+
 
 /* Analytics */
 .analytics-grid {
