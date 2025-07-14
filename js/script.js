@@ -512,139 +512,97 @@ function mostrarEdicionEstadisticasHoja(partidoId) {
 }
 
 const renderizarEstadistiques = () => {
-    const estadisticasDisponibles = [
-        { key: 'goles', nombre: 'Gols' },
-        { key: 'asistencias', nombre: 'Assistències' },
-        { key: 'chutes', nombre: 'Xuts' },
-        { key: 'perdidas', nombre: 'Pèrdues' },
-        { key: 'recuperaciones', nombre: 'Recuperacions' },
-        { key: 'goles_a_favor', nombre: 'Gols a Favor' },
-        { key: 'goles_en_contra', nombre: 'Gols en Contra' },
-        { key: 'mvp_flow', nombre: 'MVP Flow' }
-    ];
+    let html = `<div class="stats-table-container"><table class="stats-table-mvp">
+        <thead><tr>
+            <th>Jugador</th>
+            <th>Gols</th>
+            <th>Assistències</th>
+            <th>Xuts</th>
+            <th>Pèrdues</th>
+            <th>Recuperacions</th>
+            <th>Gols a Favor</th>
+            <th>Gols en Contra</th>
+            <th>MVP Flow</th>
+            </tr></thead><tbody>`;
+    let primerJugadorId = null;
+    if (partitSeleccionat === 'global') {
+        plantilla.forEach(j => {
+            // Obtener estadísticas de los partidos antiguos
+            const statsAntiguos = (estadisticasJugadores[j.id] || []).reduce((acc, curr) => {
+                acc.goles += curr.goles || 0;
+                acc.asistencias += curr.asistencias || 0;
+                acc.chutes += curr.chutes || 0;
+                acc.perdidas += curr.perdidas || 0;
+                acc.recuperaciones += curr.recuperaciones || 0;
+                acc.goles_a_favor += curr.goles || 0;
+                acc.goles_en_contra += 0;
+                return acc;
+            }, { goles: 0, asistencias: 0, chutes: 0, perdidas: 0, recuperaciones: 0, goles_a_favor: 0, goles_en_contra: 0 });
+            
+            // Obtener estadísticas de los partidos nuevos
+            const statsNuevos = partits.map(p => p.estadistiques?.[j.id] || {});
+            const totalsNuevos = statsNuevos.reduce((acc, curr) => {
+                acc.goles += curr.goles || 0;
+                acc.asistencias += curr.asistencias || 0;
+                acc.chutes += curr.chutes || 0;
+                acc.perdidas += curr.perdidas || 0;
+                acc.recuperaciones += curr.recuperaciones || 0;
+                acc.goles_a_favor += curr.goles_a_favor || 0;
+                acc.goles_en_contra += curr.goles_en_contra || 0;
+                return acc;
+            }, { goles: 0, asistencias: 0, chutes: 0, perdidas: 0, recuperaciones: 0, goles_a_favor: 0, goles_en_contra: 0 });
+            
+            // Combinar las estadísticas antiguas y nuevas
+            const totals = {
+                goles: statsAntiguos.goles + totalsNuevos.goles,
+                asistencias: statsAntiguos.asistencias + totalsNuevos.asistencias,
+                chutes: statsAntiguos.chutes + totalsNuevos.chutes,
+                perdidas: statsAntiguos.perdidas + totalsNuevos.perdidas,
+                recuperaciones: statsAntiguos.recuperaciones + totalsNuevos.recuperaciones,
+                goles_a_favor: statsAntiguos.goles_a_favor + totalsNuevos.goles_a_favor,
+                goles_en_contra: statsAntiguos.goles_en_contra + totalsNuevos.goles_en_contra
+            };
 
-    let indiceEstadisticaActual = estadisticasDisponibles.findIndex(e => e.key === 'mvp_flow');
+            const mvp_flow = calcularMvpFlow(totals);
 
-    const renderizarTabla = () => {
-        const estadisticaActual = estadisticasDisponibles[indiceEstadisticaActual];
-        let primerJugadorId = null;
+           if (!primerJugadorId) primerJugadorId = j.id;
+            html += `<tr class="stat-row" data-jugador-id="${j.id}" style="cursor:pointer">
+                <td>${j.nombreMostrado}</td>
+                <td>${totals.goles}</td>
+                <td>${totals.asistencias}</td>
+                <td>${totals.chutes}</td>
+                <td>${totals.perdidas}</td>
+                <td>${totals.recuperaciones}</td>
+                <td>${totals.goles_a_favor}</td>
+                <td>${totals.goles_en_contra}</td>
+                <td>${mvp_flow.toFixed(1)}</td>
+            </tr>`;
+        });
+    } else {
+        // Vista de partido específico
+        const partit = partits.find(p => p.id == partitSeleccionat);
+        if (partit) {
+            plantilla.forEach(j => {
+                const stats = partit.estadistiques[j.id] || {};
+                const mvp_flow = calcularMvpFlow(stats);
 
-        const getStatsJugador = (jugadorId) => {
-            if (partitSeleccionat === 'global') {
-                const statsAntiguos = (estadisticasJugadores[jugadorId] || []).reduce((acc, curr) => {
-                    acc.goles += curr.goles || 0;
-                    acc.asistencias += curr.asistencias || 0;
-                    acc.chutes += curr.chutes || 0;
-                    acc.perdidas += curr.perdidas || 0;
-                    acc.recuperaciones += curr.recuperaciones || 0;
-                    acc.goles_a_favor += curr.goles || 0;
-                    acc.goles_en_contra += 0;
-                    return acc;
-                }, { goles: 0, asistencias: 0, chutes: 0, perdidas: 0, recuperaciones: 0, goles_a_favor: 0, goles_en_contra: 0 });
-
-                const statsNuevos = partits.map(p => p.estadistiques?.[jugadorId] || {});
-                const totalsNuevos = statsNuevos.reduce((acc, curr) => {
-                    acc.goles += curr.goles || 0;
-                    acc.asistencias += curr.asistencias || 0;
-                    acc.chutes += curr.chutes || 0;
-                    acc.perdidas += curr.perdidas || 0;
-                    acc.recuperaciones += curr.recuperaciones || 0;
-                    acc.goles_a_favor += curr.goles_a_favor || 0;
-                    acc.goles_en_contra += curr.goles_en_contra || 0;
-                    return acc;
-                }, { goles: 0, asistencias: 0, chutes: 0, perdidas: 0, recuperaciones: 0, goles_a_favor: 0, goles_en_contra: 0 });
-
-                const totals = {
-                    goles: statsAntiguos.goles + totalsNuevos.goles,
-                    asistencias: statsAntiguos.asistencias + totalsNuevos.asistencias,
-                    chutes: statsAntiguos.chutes + totalsNuevos.chutes,
-                    perdidas: statsAntiguos.perdidas + totalsNuevos.perdidas,
-                    recuperaciones: statsAntiguos.recuperaciones + totalsNuevos.recuperaciones,
-                    goles_a_favor: statsAntiguos.goles_a_favor + totalsNuevos.goles_a_favor,
-                    goles_en_contra: statsAntiguos.goles_en_contra + totalsNuevos.goles_en_contra
-                };
-                totals.mvp_flow = calcularMvpFlow(totals);
-                return totals;
-            } else {
-                const partit = partits.find(p => p.id == partitSeleccionat);
-                if (partit) {
-                    const stats = partit.estadistiques[jugadorId] || {};
-                    stats.mvp_flow = calcularMvpFlow(stats);
-                    return stats;
-                }
-                return {};
-            }
-        };
-
-        const tablaHTML = `
-            <div class="stats-table-container">
-                <table class="stats-table-mvp">
-                    <thead>
-                        <tr>
-                            <th>Jugador</th>
-                            <th id="stat-header-display" class="interactive-header" data-stat-key="${estadisticaActual.key}">
-                                <span>${estadisticaActual.nombre}</span>
-                                <div class="header-icons">
-                                <i class="fas fa-chevron-up"></i>
-                                <i class="fas fa-chevron-down"></i>
-                            </div>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${plantilla.map(jugador => {
-                            if (!primerJugadorId) primerJugadorId = jugador.id;
-                            const stats = getStatsJugador(jugador.id);
-                            const valor = stats[estadisticaActual.key] || 0;
-                            return `
-                                <tr class="stat-row" data-jugador-id="${jugador.id}" style="cursor:pointer">
-                                    <td>${jugador.nombreMostrado}</td>
-                                    <td>${typeof valor === 'number' ? valor.toFixed(1) : valor}</td>
-                                </tr>
-                            `;
-                        }).join('')}
-                    </tbody>
-                </table>
-            </div>`;
-
-        elements.stats.lista.innerHTML = tablaHTML;
-
-        if (primerJugadorId) {
-            setupEstadisticasListeners(primerJugadorId);
+               if (!primerJugadorId) primerJugadorId = j.id;
+                html += `<tr class="stat-row" data-jugador-id="${j.id}" style="cursor:pointer">
+                    <td>${j.nombreMostrado}</td>
+                    <td>${stats.goles || 0}</td>
+                    <td>${stats.asistencias || 0}</td>
+                    <td>${stats.chutes || 0}</td>
+                    <td>${stats.perdidas || 0}</td>
+                    <td>${stats.recuperaciones || 0}</td>
+                    <td>${stats.goles_a_favor || 0}</td>
+                    <td>${stats.goles_en_contra || 0}</td>
+                    <td>${mvp_flow.toFixed(1)}</td>
+                </tr>`;
+            });
         }
-    };
-
-    const cambiarEstadistica = (direccion) => {
-        indiceEstadisticaActual = (indiceEstadisticaActual + direccion + estadisticasDisponibles.length) % estadisticasDisponibles.length;
-        renderizarTabla();
-        configurarListenersEstadisticas();
-    };
-
-    const configurarListenersEstadisticas = () => {
-        const header = document.getElementById('stat-header-display');
-        if (!header) return;
-
-        header.onclick = () => cambiarEstadistica(1);
-
-        let touchStartY = 0;
-        let touchEndY = 0;
-
-        header.addEventListener('touchstart', e => {
-            touchStartY = e.changedTouches[0].screenY;
-        }, { passive: true });
-
-        header.addEventListener('touchend', e => {
-            touchEndY = e.changedTouches[0].screenY;
-            if (touchStartY - touchEndY > 50) {
-                cambiarEstadistica(1);
-            } else if (touchEndY - touchStartY > 50) {
-                cambiarEstadistica(-1);
-            }
-        }, { passive: true });
-    };
-
-    renderizarTabla();
-    configurarListenersEstadisticas();
+    }    html += '</tbody></table></div>';
+    elements.stats.lista.innerHTML = html;
+    setupEstadisticasListeners();
 };
 // Función para guardar partidos y estadísticas en localStorage
 function guardarDatos() {
@@ -1307,7 +1265,7 @@ function activarTab(tab) {
 }
 
 // Función helper para establecer los event listeners de la tabla de estadísticas
-function setupEstadisticasListeners(primerJugadorId) {
+function setupEstadisticasListeners() {
     const analyticsContainer = document.getElementById('analytics-container');
     if (analyticsContainer) {
         analyticsContainer.innerHTML = `
