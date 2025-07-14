@@ -57,7 +57,7 @@ footer {
 .campo-container {
     width: 100%;
     max-width: 450px; /* Better size for mobile */
-    aspect-ratio: 1.6 / 1;
+    aspect-ratio: 5 / 8;
     position: relative;
     margin: 0 auto;
 }
