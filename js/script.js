@@ -300,19 +300,26 @@ function mostrarEstadisticas(jugadorId) {
 
 function crearNuevoPartido() {
     const form = `
+        <div class="modal-header">
+            <h2><i class="fas fa-plus-circle"></i> Afegir Partit</h2>
+            <p class="modal-subtitle">Crea un nou partit per registrar-ne les estadístiques</p>
+        </div>
         <div class="stats-form">
-            <h3>Nou Partit</h3>
             <div class="form-group">
-                <label>Nom del partit:</label>
-                <input type="text" id="nom-partit" required>
+                <label for="nom-partit"><i class="fas fa-futbol"></i>Nom del partit</label>
+                <input type="text" id="nom-partit" class="form-control" required placeholder="Ex: Jornada 5 vs Rival">
             </div>
             <div class="form-group">
-                <label>Resultat:</label>
-                <input type="text" id="resultat-partit" placeholder="Ex: 3-2">
+                <label for="resultat-partit"><i class="fas fa-scoreboard"></i>Resultat</label>
+                <input type="text" id="resultat-partit" class="form-control" placeholder="Ex: 3-2">
             </div>
             <div class="form-actions">
-                <button id="btn-crear-partit" class="nav-btn">Crear i afegir estadístiques</button>
-                <button id="btn-cancelar" class="nav-btn">Cancel·lar</button>
+                <button id="btn-crear-partit" class="btn-primary">
+                    <i class="fas fa-check"></i>Crear i Continuar
+                </button>
+                <button id="btn-cancelar" class="btn-secondary">
+                    <i class="fas fa-times"></i>Cancel·lar
+                </button>
             </div>
         </div>
     `;
@@ -335,11 +342,12 @@ function crearNuevoPartido() {
             nom: nom,
             resultat: resultat,
             estadistiques: {}
-        };            partits.push(nouPartit);
-                    guardarDatos();
-            actualizarSelectorPartits(nouId);
-            cerrarModal();
-            setTimeout(() => mostrarEdicionEstadistiquesHoja(nouId), 100);
+        };
+        partits.push(nouPartit);
+        guardarDatos();
+        actualizarSelectorPartits(nouId);
+        cerrarModal();
+        setTimeout(() => mostrarEdicionEstadisticasHoja(nouId), 100);
     };
 
     document.getElementById('btn-cancelar').onclick = cerrarModal;
@@ -1129,8 +1137,10 @@ function renderizarClips() {
                 </iframe>
             </div>
             <div class="clip-info">
-                <div class="clip-minut">Minut ${clip.minut}</div>
-                <div class="clip-descripcio">${clip.descripcio}</div>
+                <div>
+                    <div class="clip-minut">Minut ${clip.minut}</div>
+                    <div class="clip-descripcio">${clip.descripcio}</div>
+                </div>
                 <button class="btn-delete" onclick="eliminarClip(${partit.id}, ${clip.id})">
                     <i class="fas fa-trash"></i>
                 </button>
