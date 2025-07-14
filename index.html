@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALINSTATS Futsal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <h1>ALINSTATS</h1>
+        <p class="subtitulo">Alineació automàtica i estadístiques</p>    </header>
+    <div class="carrusel-container">
+        <h2>JUGADORS DISPONIBLES</h2>
+        <div class="carrusel" id="carrusel-convocatoria"></div>
+    </div>
+    <main>
+        <section id="section-alineacio">
+            <div class="campo-container">
+                <div class="campo" id="campo-juego">
+                    <svg viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg" style="transform: rotate(90deg); transform-origin: center;">
+                        <rect x="10" y="10" width="780" height="480" stroke="#fff" stroke-width="4" fill="#a0c4ff" />
+                        <line x1="400" y1="10" x2="400" y2="490" stroke="#fff" stroke-width="4" />
+                        <circle cx="400" cy="250" r="40" stroke="#fff" stroke-width="4" fill="none" />
+                        <circle cx="400" cy="250" r="3" fill="#fff" />
+                        <circle cx="120" cy="250" r="3" fill="#fff" />
+                        <circle cx="680" cy="250" r="3" fill="#fff" />
+                        <path d="M 10 150 A 70 70 0 0 1 80 220 L 80 280 A 70 70 0 0 1 10 350" fill="none" stroke="#fff" stroke-width="4"/>
+                        <path d="M 790 150 A 70 70 0 0 0 720 220 L 720 280 A 70 70 0 0 0 790 350" fill="none" stroke="#fff" stroke-width="4"/>
+                        <rect x="0" y="220" width="10" height="60" stroke="#fff" stroke-width="2" fill="none" />
+                        <rect x="790" y="220" width="10" height="60" stroke="#fff" stroke-width="2" fill="none" />
+                    </svg>
+                    <div class="overlay" id="overlay-fichas"></div>
+                </div>
+            </div>
+        </section>
+        <section id="section-estadistiques" style="display:none;">            <div class="section-header">
+                <h2>Estadístiques i Rendiment</h2>
+            </div>
+            <div class="stats-controls">
+                <div class="partits-selector">
+                    <select id="partit-selector">
+                        <option value="global">Global</option>
+                    </select>
+                    <button id="add-match-btn" class="nav-btn">
+                        <i class="fas fa-plus"></i>
+                        Afegeix Partit
+                    </button>
+                    <button id="edit-match-btn" class="nav-btn" style="display: none;">
+                        <i class="fas fa-edit"></i>
+                        Editar Partit
+                    </button>
+                </div>
+            </div>
+            <div class="stats-content">
+                <div id="estadistiques-lista"></div>                <div id="analytics-container" class="analytics-container">
+                    <div id="analisi-rendiment" class="analisi-rendiment-container">
+                        <h2>Selecciona un jugador per veure l'anàlisi</h2>
+                    </div>
+                    <div class="analytics-grid">
+                        <div class="analytics-card">
+                            <h3>Evolució MVP Flow</h3>
+                            <canvas id="chart-rendimiento"></canvas>
+                        </div>
+                        <div class="analytics-card">
+                            <h3>Rendiment per Estadístiques</h3>
+                            <canvas id="chart-mvp"></canvas>
+                        </div>
+                    </div>
+                </div>
+                <div id="alineacio-mvp"></div>
+            </div>
+        </section>        <section id="section-clips" style="display:none;">
+            <div class="section-header">
+                <h2>Clips del Partit</h2>
+            </div>
+            <div class="clips-controls">
+                <div class="partits-selector">
+                    <select id="partit-selector-clips">
+                        <option value="global">Selecciona un partit</option>
+                    </select>
+                    <button id="add-clip-btn-main" class="nav-btn" style="display:none;">
+                        <i class="fas fa-plus"></i> 
+                        Afegeix Clip
+                    </button>
+                </div>
+            </div>
+            <div id="clips-lista" class="clips-grid"></div>
+        </section>
+    </main>    <div class="button-container">
+        <button id="btn-alineacio" class="nav-btn">
+            <i class="fas fa-users"></i>
+            Alineació
+        </button>
+        <button id="btn-estadistiques" class="nav-btn">
+            <i class="fas fa-chart-bar"></i>
+            Estadístiques
+        </button>
+        <button id="btn-clips" class="nav-btn">
+            <i class="fas fa-film"></i>
+            Clips
+        </button>
+    </div>    <footer>
+    </footer>
+    <div id="modal-backdrop" class="modal-backdrop"></div>
+    <div id="modal-popup" class="modal-popup">
+        <button id="modal-close-btn" class="modal-close">&times;</button>
+        <div id="modal-content"></div>
+    </div>
+    <script src="js/data.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>
