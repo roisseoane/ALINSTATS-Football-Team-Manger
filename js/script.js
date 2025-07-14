@@ -348,14 +348,13 @@ function crearNuevoPartido() {
 function mostrarEdicionEstadisticasHoja(partidoId) {
     const partido = partits.find(p => p.id == partidoId);
     if (!partido) return;
-    
-    // Añadir clase para modal grande
+
     elements.modal.popup.classList.add('modal-large');
 
     const form = `
         <div class="stats-form">
             <h3>Editar Estadístiques - ${partido.nom}</h3>
-            <div style="overflow-x: auto;">
+            <div class="stats-table-container">
                 <table class="stats-table-mvp">
                     <thead>
                         <tr>
@@ -447,7 +446,7 @@ function mostrarEdicionEstadisticasHoja(partidoId) {
 }
 
 const renderizarEstadistiques = () => {
-    let html = `<div style='overflow-x:auto;'><table class="stats-table-mvp">
+    let html = `<div class="stats-table-container"><table class="stats-table-mvp">
         <thead><tr>
             <th>Jugador</th>
             <th>Gols</th>
