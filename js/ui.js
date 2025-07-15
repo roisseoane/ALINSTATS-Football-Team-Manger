@@ -1,68 +1,22 @@
-
-// Global variables
-let jugadoresDisponibles = [];
-let alineacionActual = {};
-let partits = [];
-let partitSeleccionat = 'global';
-let elements = {
-    overlay: null,
-    carrusel: null,
-    modal: {
-        backdrop: null,
-        popup: null,
-        content: null,
-        closeBtn: null
-    },
-    sections: {
-        alineacio: null,
-        estadistiques: null,
-        clips: null
-    },
-    stats: {
-        selector: null,
-        lista: null,
-        addBtn: null,
-        editBtn: null
-    },
-    clips: {
-        selector: null,
-        lista: null,
-        addBtn: null
-    },
-    nav: {
-        btnEstadistiques: null,
-        btnAlineacio: null,
-        btnClips: null
-    }
-};
+import { elements, plantilla, jugadoresDisponibles, setJugadoresDisponibles, inicialesPosicion, coordenadasPosiciones, partits, partitSeleccionat, setPartitSeleccionat, estadisticasJugadores } from './state.js';
+import { generarMejorAlineacion } from './main.js';
+import { guardarDatos } from './api.js';
+import { mostrarGraficasJugador } from './charts.js';
 
 // Utility Functions
-function abrirModal() {
+export function abrirModal() {
     elements.modal.backdrop.classList.add('visible');
     elements.modal.popup.classList.add('visible');
 }
 
-function cerrarModal() {
+export function cerrarModal() {
     elements.modal.backdrop.classList.remove('visible');
     elements.modal.popup.classList.remove('visible');
     elements.modal.popup.classList.remove('modal-large');
     elements.modal.content.innerHTML = '';
 }
 
-function calcularMvpFlow(stats) {
-    let puntos = 0;
-    puntos += Math.min(stats.goles || 0, 3) * 2;
-    puntos += Math.min(stats.asistencias || 0, 3) * 1.5;
-    puntos += Math.min(stats.chutes || 0, 6) * 0.5;
-    if ((stats.goles || 0) === 0 && (stats.chutes || 0) >= 5) puntos -= 1;
-    puntos -= Math.min(stats.perdidas || 0, 6) * 0.5;
-    puntos += Math.min(stats.recuperaciones || 0, 6) * 0.5;
-    puntos += Math.min(stats.goles_a_favor || 0, 8) * 0.25;
-    puntos -= Math.min(stats.goles_en_contra || 0, 8) * 0.25;
-    return Math.max(1.0, Math.min(puntos, 10.0));
-}
-
-function renderizarCarrusel() {
+export function renderizarCarrusel() {
     elements.carrusel.innerHTML = '';
     plantilla.forEach(j => {
         const tarjeta = document.createElement('div');
@@ -79,7 +33,7 @@ function renderizarCarrusel() {
                     jugadoresDisponibles.push(j.id);
                 }
             } else {
-                jugadoresDisponibles = jugadoresDisponibles.filter(x => x !== j.id);
+                setJugadoresDisponibles(jugadoresDisponibles.filter(x => x !== j.id));
             }
             renderizarAlineacion(generarMejorAlineacion());
         });
@@ -88,7 +42,7 @@ function renderizarCarrusel() {
     });
 }
 
-function renderizarAlineacion(alin) {
+export function renderizarAlineacion(alin) {
     elements.overlay.innerHTML = '';
     for (const pos in alin) {
         const idTitular = alin[pos].titular;
@@ -134,7 +88,7 @@ function renderizarAlineacion(alin) {
     }
 }
 
-function activarTab(tab) {
+export function activarTab(tab) {
     // Ocultar todas las secciones
     elements.sections.alineacio.style.display = 'none';
     elements.sections.estadistiques.style.display = 'none';
@@ -179,7 +133,7 @@ function activarTab(tab) {
     elements.nav.btnClips.title = tab === 'clips' ? 'Secció actual' : 'Anar a Clips';
 }
 
-function actualizarSelectorPartits(selectedId = 'global') {
+export function actualizarSelectorPartits(selectedId = 'global') {
     const options = [`<option value="global">Global</option>`];
     partits.forEach(p => {
         options.push(`<option value="${p.id}" ${p.id == selectedId ? 'selected' : ''}>
@@ -187,58 +141,11 @@ function actualizarSelectorPartits(selectedId = 'global') {
         </option>`);
     });
     elements.stats.selector.innerHTML = options.join('');
-    partitSeleccionat = selectedId;
+    setPartitSeleccionat(selectedId);
     elements.stats.editBtn.style.display = selectedId !== 'global' ? 'block' : 'none';
 }
 
-function generarMejorAlineacion() {
-    const alineacion = {
-        portero: {titular: null, suplentes: []},
-        cierre: {titular: null, suplentes: []},
-        alaIzquierdo: {titular: null, suplentes: []},
-        alaDerecho: {titular: null, suplentes: []},
-        pivot: {titular: null, suplentes: []}
-    };
-
-    let jugadoresPorAsignar = [...jugadoresDisponibles];
-
-    // Assign starters
-    for (const pos in habilidadPorPosicion) {
-        for (const id of habilidadPorPosicion[pos]) {
-            if (jugadoresPorAsignar.includes(id)) {
-                alineacion[pos].titular = id;
-                jugadoresPorAsignar = jugadoresPorAsignar.filter(x => x !== id);
-                break;
-            }
-        }
-    }
-
-    // Assign substitutes
-    let restantes = [...jugadoresPorAsignar];
-    while (restantes.length > 0) {
-        let mejor = {jugadorId: null, posicion: null, ranking: Infinity};
-        for (const id of restantes) {
-            for (const pos in habilidadPorPosicion) {
-                if (!alineacion[pos].titular) continue;
-                const rank = habilidadPorPosicion[pos].indexOf(id);
-                if (rank !== -1 && rank < mejor.ranking && !Object.values(alineacion).some(p => p.suplentes.includes(id))) {
-                    mejor = {jugadorId: id, posicion: pos, ranking: rank};
-                }
-            }
-        }
-        if (mejor.jugadorId) {
-            alineacion[mejor.posicion].suplentes.push(mejor.jugadorId);
-            restantes = restantes.filter(x => x !== mejor.jugadorId);
-        } else {
-            break;
-        }
-    }
-
-    alineacionActual = alineacion;
-    return alineacion;
-}
-
-function mostrarEstadisticas(jugadorId) {
+export function mostrarEstadisticas(jugadorId) {
     const jugador = plantilla.find(j => j.id === jugadorId);
     
     // Obtener estadísticas de partidos antiguos
@@ -298,7 +205,7 @@ function mostrarEstadisticas(jugadorId) {
     abrirModal();
 }
 
-function crearNuevoPartido() {
+export function crearNuevoPartido() {
     const form = `
         <div class="modal-header">
             <h2><i class="fas fa-plus-circle"></i> Afegir Partit</h2>
@@ -353,7 +260,7 @@ function crearNuevoPartido() {
     document.getElementById('btn-cancelar').onclick = cerrarModal;
 }
 
-function mostrarEdicionEstadisticasHoja(partidoId) {
+export function mostrarEdicionEstadisticasHoja(partidoId) {
     const partido = partits.find(p => p.id == partidoId);
     if (!partido) return;
 
@@ -511,7 +418,7 @@ function mostrarEdicionEstadisticasHoja(partidoId) {
     document.getElementById('btn-cancelar-stats').onclick = cerrarModal;
 }
 
-const renderizarEstadistiques = () => {
+export const renderizarEstadistiques = () => {
     let html = `<div class="stats-table-container"><table class="stats-table-mvp">
         <thead><tr>
             <th>Jugador</th>
@@ -602,452 +509,11 @@ const renderizarEstadistiques = () => {
         }
     }    html += '</tbody></table></div>';
     elements.stats.lista.innerHTML = html;
-    setupEstadisticasListeners();
+    setupEstadisticasListeners(primerJugadorId);
 };
-// Función para guardar partidos y estadísticas en localStorage
-function guardarDatos() {
-    localStorage.setItem('partits', JSON.stringify(partits));
-    localStorage.setItem('partitSeleccionat', partitSeleccionat);
-}
-
-// Función para cargar partidos y estadísticas de localStorage
-function cargarDatos() {
-    const savedPartits = localStorage.getItem('partits');
-    if (savedPartits) partits = JSON.parse(savedPartits);
-    const savedPartitSel = localStorage.getItem('partitSeleccionat');
-    if (savedPartitSel) partitSeleccionat = savedPartitSel;
-}
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    cargarDatos();
-    
-    // Initialize elements
-    elements.overlay = document.getElementById('overlay-fichas');
-    elements.carrusel = document.getElementById('carrusel-convocatoria');
-    elements.modal.backdrop = document.getElementById('modal-backdrop');
-    elements.modal.popup = document.getElementById('modal-popup');
-    elements.modal.content = document.getElementById('modal-content');
-    elements.modal.closeBtn = document.getElementById('modal-close-btn');
-    
-    // Sections
-    elements.sections.alineacio = document.getElementById('section-alineacio');
-    elements.sections.estadistiques = document.getElementById('section-estadistiques');
-    elements.sections.clips = document.getElementById('section-clips');
-    
-    // Stats elements
-    elements.stats.selector = document.getElementById('partit-selector');
-    elements.stats.lista = document.getElementById('estadistiques-lista');
-    elements.stats.addBtn = document.getElementById('add-match-btn');
-    elements.stats.editBtn = document.getElementById('edit-match-btn');
-    
-    // Clips elements
-    elements.clips.selector = document.getElementById('partit-selector-clips');
-    elements.clips.lista = document.getElementById('clips-lista');
-    elements.clips.addBtn = document.getElementById('add-clip-btn-main');
-    
-    // Navigation buttons
-    elements.nav.btnEstadistiques = document.getElementById('btn-estadistiques');
-    elements.nav.btnAlineacio = document.getElementById('btn-alineacio');
-    elements.nav.btnClips = document.getElementById('btn-clips');
-    
-    // Initialize state
-    jugadoresDisponibles = []; // Empezamos sin jugadores seleccionados
-    
-    // Event Listeners for Stats
-    if (elements.stats.addBtn) {
-        elements.stats.addBtn.addEventListener('click', crearNuevoPartido);
-    }
-    
-    if (elements.stats.editBtn) {
-        elements.stats.editBtn.addEventListener('click', () => {
-            if (partitSeleccionat && partitSeleccionat !== 'global') {
-                mostrarEdicionEstadisticasHoja(partitSeleccionat);
-            }
-        });
-    }
-    
-    if (elements.stats.selector) {
-        elements.stats.selector.addEventListener('change', (e) => {
-            partitSeleccionat = e.target.value;
-            guardarDatos();
-            if (elements.stats.editBtn) {
-                elements.stats.editBtn.style.display = partitSeleccionat !== 'global' ? 'block' : 'none';
-            }
-            renderizarEstadistiques();
-        });
-    }
-
-    // Event Listeners for Clips
-    if (elements.clips.selector) {
-        elements.clips.selector.addEventListener('change', () => {
-            renderizarClips();
-        });
-    }
-
-    if (elements.clips.addBtn) {
-        elements.clips.addBtn.addEventListener('click', mostrarFormularioClip);
-    }
-
-    // Navigation Event Listeners
-    elements.nav.btnEstadistiques.addEventListener('click', () => activarTab('estadistiques'));
-    elements.nav.btnAlineacio.addEventListener('click', () => activarTab('alineacio'));
-    elements.nav.btnClips.addEventListener('click', () => activarTab('clips'));
-    elements.modal.backdrop.addEventListener('click', cerrarModal);
-
-    // Initial render
-    renderizarCarrusel();
-    renderizarAlineacion(generarMejorAlineacion());
-    activarTab('alineacio');
-    actualizarSelectorPartits(partitSeleccionat);
-    actualizarSelectorClips();
-    renderizarEstadistiques();
-});
-
-// --- Gráficas con Chart.js ---
-let chartRendimiento = null;
-let chartRadar = null;
-
-function mostrarGraficasJugador(jugadorId) {
-    const ctxRend = document.getElementById('chart-rendimiento').getContext('2d');
-    const ctxRadar = document.getElementById('chart-mvp').getContext('2d');
-    
-    // Actualizar título
-    const tituloAnalisis = document.querySelector('#analisi-rendiment h2');
-    if (tituloAnalisis) {
-        tituloAnalisis.textContent = `Anàlisi de rendiment de ${plantilla.find(j => j.id === jugadorId)?.nombreMostrado || ''}`;
-    }
-    
-    // Limpiar gráficos anteriores
-    if (chartRendimiento) chartRendimiento.destroy();
-    if (chartRadar) chartRadar.destroy();    // Datos de rendimiento por partido
-    const partidosJugador = partits.map(p => {
-        const stats = p.estadistiques?.[jugadorId] || {};
-        return {
-            partido: p.nom,
-            mvp: calcularMvpFlow(stats),
-            stats: stats
-        };
-    }).sort((a, b) => partits.findIndex(p => p.nom === a.partido) - partits.findIndex(p => p.nom === b.partido));
-
-    const mvpData = partidosJugador.map(p => p.mvp);
-    const mediaMovil = mvpData.map((val, idx, arr) => {
-        const start = Math.max(0, idx - 2);
-        const end = idx + 1;
-        const slice = arr.slice(start, end);
-        return slice.reduce((a, b) => a + b, 0) / slice.length;
-    });
-
-    chartRendimiento = new Chart(ctxRend, {
-        type: 'line',
-        data: {
-            labels: partidosJugador.map(p => p.partido),
-            datasets: [{
-                label: 'MVP Flow',
-                data: mvpData,
-                borderColor: '#00aaff',
-                backgroundColor: 'rgba(0,170,255,0.1)',
-                tension: 0.4,
-                fill: true,
-                pointBackgroundColor: '#fff',
-                pointBorderColor: '#00aaff',
-                pointBorderWidth: 2,
-                pointRadius: 5,
-                pointHoverRadius: 8
-            }, {
-                label: 'Tendència (últims 3 partits)',
-                data: mediaMovil,
-                borderColor: '#ff9900',
-                borderWidth: 2,
-                tension: 0.4,
-                pointRadius: 0,
-                borderDash: [5, 5],
-                fill: false
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            interaction: {
-                intersect: false,
-                mode: 'index'
-            },
-            plugins: { 
-                legend: { 
-                    display: true,
-                    position: 'top',
-                    labels: {
-                        color: '#fff',
-                        font: { size: 12 },
-                        usePointStyle: true,
-                        padding: 20
-                    }
-                },
-                title: {
-                    display: true,
-                    text: 'Evolució MVP Flow',
-                    color: '#fff',
-                    font: { size: 16, weight: 'bold' },
-                    padding: { bottom: 20 }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    titleFont: { size: 14 },
-                    bodyFont: { size: 13 },
-                    padding: 12,
-                    usePointStyle: true,
-                    callbacks: {
-                        afterBody: function(context) {
-                            const idx = context[0].dataIndex;
-                            const stats = partidosJugador[idx].stats;
-                            return [
-                                '',
-                                `Gols: ${stats.goles || 0}`,
-                                `Assistències: ${stats.asistencias || 0}`,
-                                `Xuts: ${stats.chutes || 0}`,
-                                `Recuperacions: ${stats.recuperaciones || 0}`
-                            ];
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: { 
-                    beginAtZero: true, 
-                    max: 10,
-                    ticks: { 
-                        color: '#aaa',
-                        font: { size: 12 },
-                        stepSize: 1
-                    },
-                    grid: { 
-                        color: 'rgba(255,255,255,0.1)',
-                        drawTicks: false
-                    },
-                    border: { dash: [2, 4] }
-                },
-                x: { 
-                    ticks: { 
-                        color: '#aaa',
-                        font: { size: 12 },
-                        maxRotation: 45,
-                        minRotation: 45
-                    },
-                    grid: { 
-                        color: 'rgba(255,255,255,0.1)',
-                        drawTicks: false
-                    },
-                    border: { dash: [2, 4] }
-                }
-            }
-        }
-    });
-
-    // Datos radar del partido seleccionado
-    let stats = {};
-    let mediaEquipo = {
-        goles: 0,
-        asistencias: 0,
-        chutes: 0,
-        perdidas: 0,
-        recuperaciones: 0
-    };
-    
-    if (partitSeleccionat === 'global') {
-        // Sumar todos los partidos del jugador
-        stats = partits.reduce((acc, p) => {
-            const s = p.estadistiques?.[jugadorId] || {};
-            acc.goles += s.goles || 0;
-            acc.asistencias += s.asistencias || 0;
-            acc.chutes += s.chutes || 0;
-            acc.perdidas += s.perdidas || 0;
-            acc.recuperaciones += s.recuperaciones || 0;
-            return acc;
-        }, {goles:0, asistencias:0, chutes:0, perdidas:0, recuperaciones:0});
-
-        // Calcular media del equipo
-        let totalJugadores = plantilla.length;
-        plantilla.forEach(jugador => {
-            let statsJugador = partits.reduce((acc, p) => {
-                const s = p.estadistiques?.[jugador.id] || {};
-                acc.goles += s.goles || 0;
-                acc.asistencias += s.asistencias || 0;
-                acc.chutes += s.chutes || 0;
-                acc.perdidas += s.perdidas || 0;
-                acc.recuperaciones += s.recuperaciones || 0;
-                return acc;
-            }, {goles:0, asistencias:0, chutes:0, perdidas:0, recuperaciones:0});
-            
-            mediaEquipo.goles += statsJugador.goles;
-            mediaEquipo.asistencias += statsJugador.asistencias;
-            mediaEquipo.chutes += statsJugador.chutes;
-            mediaEquipo.perdidas += statsJugador.perdidas;
-            mediaEquipo.recuperaciones += statsJugador.recuperaciones;
-        });
-
-        // Calcular medias
-        Object.keys(mediaEquipo).forEach(key => {
-            mediaEquipo[key] = mediaEquipo[key] / totalJugadores;
-        });
-    } else {
-        const p = partits.find(p => p.id == partitSeleccionat);
-        stats = p?.estadistiques?.[jugadorId] || {goles:0, asistencias:0, chutes:0, perdidas:0, recuperaciones:0};
-        
-        // Calcular media del equipo para el partido seleccionado
-        let totalJugadores = plantilla.length;
-        plantilla.forEach(jugador => {
-            const s = p?.estadistiques?.[jugador.id] || {};
-            mediaEquipo.goles += s.goles || 0;
-            mediaEquipo.asistencias += s.asistencias || 0;
-            mediaEquipo.chutes += s.chutes || 0;
-            mediaEquipo.perdidas += s.perdidas || 0;
-            mediaEquipo.recuperaciones += s.recuperaciones || 0;
-        });
-
-        Object.keys(mediaEquipo).forEach(key => {
-            mediaEquipo[key] = mediaEquipo[key] / totalJugadores;
-        });
-    }
-
-    // Calcular valores máximos para normalización
-    const maxValues = {
-        goles: Math.max(3, stats.goles || 0, mediaEquipo.goles),
-        asistencias: Math.max(3, stats.asistencias || 0, mediaEquipo.asistencias),
-        chutes: Math.max(6, stats.chutes || 0, mediaEquipo.chutes),
-        perdidas: Math.max(6, stats.perdidas || 0, mediaEquipo.perdidas),
-        recuperaciones: Math.max(6, stats.recuperaciones || 0, mediaEquipo.recuperaciones)
-    };
-
-    // Normalizar valores a escala 0-10
-    const normalizedData = {
-        goles: (stats.goles || 0) * (10 / maxValues.goles),
-        asistencias: (stats.asistencias || 0) * (10 / maxValues.asistencias),
-        chutes: (stats.chutes || 0) * (10 / maxValues.chutes),
-        perdidas: (stats.perdidas || 0) * (10 / maxValues.perdidas),
-        recuperaciones: (stats.recuperaciones || 0) * (10 / maxValues.recuperaciones)
-    };
-
-    const normalizedMedia = {
-        goles: mediaEquipo.goles * (10 / maxValues.goles),
-        asistencias: mediaEquipo.asistencias * (10 / maxValues.asistencias),
-        chutes: mediaEquipo.chutes * (10 / maxValues.chutes),
-        perdidas: mediaEquipo.perdidas * (10 / maxValues.perdidas),
-        recuperaciones: mediaEquipo.recuperaciones * (10 / maxValues.recuperaciones)
-    };
-
-    chartRadar = new Chart(ctxRadar, {
-        type: 'radar',
-        data: {
-            labels: ['Gols', 'Assistències', 'Xuts', 'Pèrdues', 'Recuperacions'],
-            datasets: [{
-                label: 'Jugador',
-                data: [
-                    normalizedData.goles,
-                    normalizedData.asistencias,
-                    normalizedData.chutes,
-                    normalizedData.perdidas,
-                    normalizedData.recuperaciones
-                ],
-                borderColor: '#00aaff',
-                backgroundColor: 'rgba(0,170,255,0.2)',
-                borderWidth: 2,
-                pointBackgroundColor: '#fff',
-                pointBorderColor: '#00aaff',
-                pointBorderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6
-            }, {
-                label: 'Mitjana equip',
-                data: [
-                    normalizedMedia.goles,
-                    normalizedMedia.asistencias,
-                    normalizedMedia.chutes,
-                    normalizedMedia.perdidas,
-                    normalizedMedia.recuperaciones
-                ],
-                borderColor: '#ff9900',
-                backgroundColor: 'rgba(255,153,0,0.2)',
-                borderWidth: 2,
-                pointBackgroundColor: '#fff',
-                pointBorderColor: '#ff9900',
-                pointBorderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6,
-                borderDash: [5, 5]
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { 
-                legend: { 
-                    display: true,
-                    position: 'top',
-                    labels: {
-                        color: '#fff',
-                        font: { size: 12 },
-                        usePointStyle: true,
-                        padding: 20
-                    }
-                },
-                title: {
-                    display: true,
-                    text: partitSeleccionat === 'global' ? 'Rendiment Global' : 'Rendiment del Partit',
-                    color: '#fff',
-                    font: { size: 16, weight: 'bold' },
-                    padding: { bottom: 20 }
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    titleFont: { size: 14 },
-                    bodyFont: { size: 13 },
-                    padding: 12,
-                    callbacks: {
-                        label: function(context) {
-                            const value = context.raw;
-                            const originalValue = context.datasetIndex === 0 ? 
-                                stats[['goles', 'asistencias', 'chutes', 'perdidas', 'recuperaciones'][context.dataIndex]] || 0 :
-                                mediaEquipo[['goles', 'asistencias', 'chutes', 'perdidas', 'recuperaciones'][context.dataIndex]];
-                            return ` ${context.dataset.label}: ${originalValue.toFixed(1)} (${value.toFixed(1)}/10)`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                r: {
-                    min: 0,
-                    max: 10,
-                    ticks: {
-                        stepSize: 2,
-                        color: '#aaa',
-                        font: { size: 10 },
-                        backdropColor: 'rgba(0,0,0,0.3)'
-                    },
-                    grid: { 
-                        color: 'rgba(255,255,255,0.1)',
-                        circular: true
-                    },
-                    angleLines: {
-                        color: 'rgba(255,255,255,0.15)',
-                        lineWidth: 1
-                    },
-                    pointLabels: {
-                        color: '#fff',
-                        font: { size: 14, weight: 'bold' }
-                    }
-                }
-            },
-            elements: {
-                line: {
-                    borderWidth: 2
-                }
-            }
-        }
-    });
-}
 
 // Funciones para gestionar clips
-function mostrarFormularioClip() {
+export function mostrarFormularioClip() {
     elements.modal.popup.classList.add('modal-large');    elements.modal.content.innerHTML = `
         <div class="modal-header">
             <h2><i class="fas fa-film"></i> Afegir Clip</h2>
@@ -1124,7 +590,7 @@ function mostrarFormularioClip() {
     abrirModal();
 }
 
-function eliminarClip(partitId, clipId) {
+export function eliminarClip(partitId, clipId) {
     if (!confirm('Estàs segur que vols eliminar aquest clip?')) return;
 
     const partit = partits.find(p => p.id == partitId);
@@ -1151,7 +617,7 @@ function getEmbedUrl(url) {
     }
 }
 
-function renderizarClips() {
+export function renderizarClips() {
     const partitId = elements.clips.selector.value;
     const partit = partits.find(p => p.id == partitId);
     const container = elements.clips.lista;
@@ -1208,7 +674,7 @@ function renderizarClips() {
     container.innerHTML = html;
 }
 
-function actualizarSelectorClips(selectedId = 'global') {
+export function actualizarSelectorClips(selectedId = 'global') {
     const options = [`<option value="global">Selecciona un partit</option>`];
     partits.forEach(p => {
         options.push(`<option value="${p.id}" ${p.id == selectedId ? 'selected' : ''}>
@@ -1219,7 +685,7 @@ function actualizarSelectorClips(selectedId = 'global') {
 }
 
 // Función helper para establecer los event listeners de la tabla de estadísticas
-function setupEstadisticasListeners() {
+export function setupEstadisticasListeners(primerJugadorId) {
     const analyticsContainer = document.getElementById('analytics-container');
     if (analyticsContainer) {
         analyticsContainer.innerHTML = `
@@ -1259,12 +725,12 @@ function setupEstadisticasListeners() {
 }
 
 // Función para resetear los datos de la aplicación
-function resetearAplicacion() {
+export function resetearAplicacion() {
     if (confirm('Estàs segur que vols esborrar totes les dades? Aquesta acció no es pot desfer.')) {
         // Limpiar datos
-        partits = [];
-        partitSeleccionat = 'global';
-        jugadoresDisponibles = [];
+        setPartits([]);
+        setPartitSeleccionat('global');
+        setJugadoresDisponibles([]);
         
         // Limpiar localStorage
         localStorage.removeItem('partits');
@@ -1280,4 +746,17 @@ function resetearAplicacion() {
         
         alert('S\'han esborrat totes les dades correctament');
     }
+}
+
+export function calcularMvpFlow(stats) {
+    let puntos = 0;
+    puntos += Math.min(stats.goles || 0, 3) * 2;
+    puntos += Math.min(stats.asistencias || 0, 3) * 1.5;
+    puntos += Math.min(stats.chutes || 0, 6) * 0.5;
+    if ((stats.goles || 0) === 0 && (stats.chutes || 0) >= 5) puntos -= 1;
+    puntos -= Math.min(stats.perdidas || 0, 6) * 0.5;
+    puntos += Math.min(stats.recuperaciones || 0, 6) * 0.5;
+    puntos += Math.min(stats.goles_a_favor || 0, 8) * 0.25;
+    puntos -= Math.min(stats.goles_en_contra || 0, 8) * 0.25;
+    return Math.max(1.0, Math.min(puntos, 10.0));
 }
