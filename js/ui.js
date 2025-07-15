@@ -1,15 +1,26 @@
-import { elements, plantilla, jugadoresDisponibles, setJugadoresDisponibles, inicialesPosicion, coordenadasPosiciones, partits, partitSeleccionat, setPartitSeleccionat, estadisticasJugadores } from './state.js';
+import {
+    getState,
+    toggleJugadorDisponible,
+    setPartitSeleccionat,
+    addPartido,
+    updatePartido,
+    addClipToPartido,
+    deleteClipFromPartido,
+    setJugadoresDisponibles
+} from './state.js';
 import { generarMejorAlineacion } from './main.js';
 import { guardarDatos } from './api.js';
 import { mostrarGraficasJugador } from './charts.js';
 
 // Utility Functions
 export function abrirModal() {
+    const { elements } = getState();
     elements.modal.backdrop.classList.add('visible');
     elements.modal.popup.classList.add('visible');
 }
 
 export function cerrarModal() {
+    const { elements } = getState();
     elements.modal.backdrop.classList.remove('visible');
     elements.modal.popup.classList.remove('visible');
     elements.modal.popup.classList.remove('modal-large');
@@ -17,6 +28,7 @@ export function cerrarModal() {
 }
 
 export function renderizarCarrusel() {
+    const { elements, plantilla, jugadoresDisponibles } = getState();
     elements.carrusel.innerHTML = '';
     plantilla.forEach(j => {
         const tarjeta = document.createElement('div');
@@ -25,17 +37,9 @@ export function renderizarCarrusel() {
             tarjeta.classList.add('seleccionado');
         }
         tarjeta.textContent = j.nombreMostrado;
-        
+
         tarjeta.addEventListener('click', () => {
-            const isSelected = tarjeta.classList.toggle('seleccionado');
-            if (isSelected) {
-                if (!jugadoresDisponibles.includes(j.id)) {
-                    jugadoresDisponibles.push(j.id);
-                }
-            } else {
-                setJugadoresDisponibles(jugadoresDisponibles.filter(x => x !== j.id));
-            }
-            renderizarAlineacion(generarMejorAlineacion());
+            toggleJugadorDisponible(j.id);
         });
 
         elements.carrusel.appendChild(tarjeta);
@@ -43,6 +47,7 @@ export function renderizarCarrusel() {
 }
 
 export function renderizarAlineacion(alin) {
+    const { elements, plantilla, inicialesPosicion, coordenadasPosiciones } = getState();
     elements.overlay.innerHTML = '';
     for (const pos in alin) {
         const idTitular = alin[pos].titular;
@@ -53,10 +58,10 @@ export function renderizarAlineacion(alin) {
 
         const posEl = document.createElement('div');
         posEl.className = 'posicion-nombre';
-        
+
         const fichaEl = document.createElement('div');
         fichaEl.className = 'ficha-jugador';
-        
+
         const suplentesEl = document.createElement('div');
         suplentesEl.className = 'info-suplentes';
 
@@ -89,6 +94,7 @@ export function renderizarAlineacion(alin) {
 }
 
 export function activarTab(tab) {
+    const { elements } = getState();
     // Ocultar todas las secciones
     elements.sections.alineacio.style.display = 'none';
     elements.sections.estadistiques.style.display = 'none';
@@ -134,20 +140,21 @@ export function activarTab(tab) {
 }
 
 export function actualizarSelectorPartits(selectedId = 'global') {
+    const { elements, partidos } = getState();
     const options = [`<option value="global">Global</option>`];
-    partits.forEach(p => {
+    partidos.forEach(p => {
         options.push(`<option value="${p.id}" ${p.id == selectedId ? 'selected' : ''}>
             ${p.nom} ${p.resultat ? `(${p.resultat})` : ''}
         </option>`);
     });
     elements.stats.selector.innerHTML = options.join('');
     setPartitSeleccionat(selectedId);
-    elements.stats.editBtn.style.display = selectedId !== 'global' ? 'block' : 'none';
 }
 
 export function mostrarEstadisticas(jugadorId) {
+    const { plantilla, estadisticasJugadores, partidos } = getState();
     const jugador = plantilla.find(j => j.id === jugadorId);
-    
+
     // Obtener estadísticas de partidos antiguos
     const statsAntiguos = estadisticasJugadores[jugadorId] || [];
     const totalsAntiguos = statsAntiguos.reduce((acc, curr) => {
@@ -161,9 +168,9 @@ export function mostrarEstadisticas(jugadorId) {
         acc.mvp_flow += calcularMvpFlow(curr);
         return acc;
     }, { goles: 0, asistencias: 0, chutes: 0, perdidas: 0, recuperaciones: 0, goles_a_favor: 0, goles_en_contra: 0, mvp_flow: 0 });
-    
+
     // Obtener estadísticas de partidos nuevos
-    const statsNuevos = partits.map(p => p.estadistiques?.[jugadorId]).filter(Boolean);
+    const statsNuevos = partidos.map(p => p.estadistiques?.[jugadorId]).filter(Boolean);
     const totalsNuevos = statsNuevos.reduce((acc, curr) => {
         acc.goles += curr.goles || 0;
         acc.asistencias += curr.asistencias || 0;
@@ -175,7 +182,7 @@ export function mostrarEstadisticas(jugadorId) {
         acc.mvp_flow += calcularMvpFlow(curr);
         return acc;
     }, { goles: 0, asistencias: 0, chutes: 0, perdidas: 0, recuperaciones: 0, goles_a_favor: 0, goles_en_contra: 0, mvp_flow: 0 });
-    
+
     // Combinar totales
     const totals = {
         goles: totalsAntiguos.goles + totalsNuevos.goles,
@@ -187,9 +194,9 @@ export function mostrarEstadisticas(jugadorId) {
         goles_en_contra: totalsAntiguos.goles_en_contra + totalsNuevos.goles_en_contra,
         mvp_flow: (totalsAntiguos.mvp_flow + totalsNuevos.mvp_flow) / (statsAntiguos.length + statsNuevos.length || 1)
     };
-    
-    const partitsJugats = statsAntiguos.length + statsNuevos.length;
 
+    const partitsJugats = statsAntiguos.length + statsNuevos.length;
+    const { elements } = getState();
     elements.modal.content.innerHTML = `
         <h3>Estadístiques de ${jugador.nombreMostrado}</h3>
         <div class="stats-viewer">
@@ -206,6 +213,7 @@ export function mostrarEstadisticas(jugadorId) {
 }
 
 export function crearNuevoPartido() {
+    const { elements, partidos } = getState();
     const form = `
         <div class="modal-header">
             <h2><i class="fas fa-plus-circle"></i> Afegir Partit</h2>
@@ -230,29 +238,27 @@ export function crearNuevoPartido() {
             </div>
         </div>
     `;
-    
+
     elements.modal.content.innerHTML = form;
     abrirModal();
 
     document.getElementById('btn-crear-partit').onclick = () => {
         const nom = document.getElementById('nom-partit').value.trim();
         const resultat = document.getElementById('resultat-partit').value.trim();
-        
+
         if (!nom) {
             alert('Si us plau, introdueix el nom del partit');
             return;
         }
 
-        const nouId = partits.length > 0 ? Math.max(...partits.map(p => p.id)) + 1 : 1;
+        const nouId = partidos.length > 0 ? Math.max(...partidos.map(p => p.id)) + 1 : 1;
         const nouPartit = {
             id: nouId,
             nom: nom,
             resultat: resultat,
             estadistiques: {}
         };
-        partits.push(nouPartit);
-        guardarDatos();
-        actualizarSelectorPartits(nouId);
+        addPartido(nouPartit);
         cerrarModal();
         setTimeout(() => mostrarEdicionEstadisticasHoja(nouId), 100);
     };
@@ -261,7 +267,8 @@ export function crearNuevoPartido() {
 }
 
 export function mostrarEdicionEstadisticasHoja(partidoId) {
-    const partido = partits.find(p => p.id == partidoId);
+    const { partidos, plantilla, elements } = getState();
+    const partido = partidos.find(p => p.id == partidoId);
     if (!partido) return;
 
     // Lista de estadísticas disponibles
@@ -297,9 +304,9 @@ export function mostrarEdicionEstadisticasHoja(partidoId) {
                 </thead>
                 <tbody>
                     ${plantilla.map(jugador => {
-                        const stats = partido.estadistiques[jugador.id] || {};
-                        const valor = stats[estadisticaActual.key] || 0;
-                        return `
+            const stats = partido.estadistiques[jugador.id] || {};
+            const valor = stats[estadisticaActual.key] || 0;
+            return `
                             <tr>
                                 <td>${jugador.nombreMostrado}</td>
                                 <td>
@@ -309,7 +316,7 @@ export function mostrarEdicionEstadisticasHoja(partidoId) {
                                 </td>
                             </tr>
                         `;
-                    }).join('')}
+        }).join('')}
                 </tbody>
             </table>
         `;
@@ -394,7 +401,7 @@ export function mostrarEdicionEstadisticasHoja(partidoId) {
     // Event listener para guardar los cambios
     document.getElementById('btn-guardar-stats').onclick = () => {
         const inputs = elements.modal.content.querySelectorAll('input[type="number"]');
-        
+
         if (!partido.estadistiques) {
             partido.estadistiques = {};
         }
@@ -410,15 +417,15 @@ export function mostrarEdicionEstadisticasHoja(partidoId) {
             partido.estadistiques[jugadorId][statName] = value;
         });
 
-        guardarDatos();
+        updatePartido(partido);
         cerrarModal();
-        renderizarEstadistiques();
     };
 
     document.getElementById('btn-cancelar-stats').onclick = cerrarModal;
 }
 
 export const renderizarEstadistiques = () => {
+    const { elements, partitSeleccionat, plantilla, estadisticasJugadores, partidos } = getState();
     let html = `<div class="stats-table-container"><table class="stats-table-mvp">
         <thead><tr>
             <th>Jugador</th>
@@ -445,9 +452,9 @@ export const renderizarEstadistiques = () => {
                 acc.goles_en_contra += 0;
                 return acc;
             }, { goles: 0, asistencias: 0, chutes: 0, perdidas: 0, recuperaciones: 0, goles_a_favor: 0, goles_en_contra: 0 });
-            
+
             // Obtener estadísticas de los partidos nuevos
-            const statsNuevos = partits.map(p => p.estadistiques?.[j.id] || {});
+            const statsNuevos = partidos.map(p => p.estadistiques?.[j.id] || {});
             const totalsNuevos = statsNuevos.reduce((acc, curr) => {
                 acc.goles += curr.goles || 0;
                 acc.asistencias += curr.asistencias || 0;
@@ -458,7 +465,7 @@ export const renderizarEstadistiques = () => {
                 acc.goles_en_contra += curr.goles_en_contra || 0;
                 return acc;
             }, { goles: 0, asistencias: 0, chutes: 0, perdidas: 0, recuperaciones: 0, goles_a_favor: 0, goles_en_contra: 0 });
-            
+
             // Combinar las estadísticas antiguas y nuevas
             const totals = {
                 goles: statsAntiguos.goles + totalsNuevos.goles,
@@ -472,7 +479,7 @@ export const renderizarEstadistiques = () => {
 
             const mvp_flow = calcularMvpFlow(totals);
 
-           if (!primerJugadorId) primerJugadorId = j.id;
+            if (!primerJugadorId) primerJugadorId = j.id;
             html += `<tr class="stat-row" data-jugador-id="${j.id}" style="cursor:pointer">
                 <td>${j.nombreMostrado}</td>
                 <td>${totals.goles}</td>
@@ -487,13 +494,13 @@ export const renderizarEstadistiques = () => {
         });
     } else {
         // Vista de partido específico
-        const partit = partits.find(p => p.id == partitSeleccionat);
+        const partit = partidos.find(p => p.id == partitSeleccionat);
         if (partit) {
             plantilla.forEach(j => {
                 const stats = partit.estadistiques[j.id] || {};
                 const mvp_flow = calcularMvpFlow(stats);
 
-               if (!primerJugadorId) primerJugadorId = j.id;
+                if (!primerJugadorId) primerJugadorId = j.id;
                 html += `<tr class="stat-row" data-jugador-id="${j.id}" style="cursor:pointer">
                     <td>${j.nombreMostrado}</td>
                     <td>${stats.goles || 0}</td>
@@ -507,14 +514,15 @@ export const renderizarEstadistiques = () => {
                 </tr>`;
             });
         }
-    }    html += '</tbody></table></div>';
+    } html += '</tbody></table></div>';
     elements.stats.lista.innerHTML = html;
     setupEstadisticasListeners(primerJugadorId);
 };
 
 // Funciones para gestionar clips
 export function mostrarFormularioClip() {
-    elements.modal.popup.classList.add('modal-large');    elements.modal.content.innerHTML = `
+    const { elements } = getState();
+    elements.modal.popup.classList.add('modal-large'); elements.modal.content.innerHTML = `
         <div class="modal-header">
             <h2><i class="fas fa-film"></i> Afegir Clip</h2>
             <p class="modal-subtitle">Afegeix un clip de vídeo per a aquest partit</p>
@@ -565,25 +573,20 @@ export function mostrarFormularioClip() {
         </form>
     `;
 
-    document.getElementById('form-clip').onsubmit = function(e) {
+    document.getElementById('form-clip').onsubmit = function (e) {
         e.preventDefault();
         const url = document.getElementById('clip-url').value;
         const descripcio = document.getElementById('clip-descripcio').value;
         const minut = document.getElementById('clip-minut').value;
-        
-        const partit = partits.find(p => p.id == elements.clips.selector.value);
-        if (!partit) return;
-
-        if (!partit.clips) partit.clips = [];
-        partit.clips.push({
+        const { elements } = getState();
+        const partidoId = elements.clips.selector.value;
+        const clip = {
             id: Date.now(),
             url: url,
             descripcio: descripcio,
             minut: minut
-        });
-
-        guardarDatos();
-        renderizarClips();
+        };
+        addClipToPartido(partidoId, clip);
         cerrarModal();
     };
 
@@ -592,20 +595,14 @@ export function mostrarFormularioClip() {
 
 export function eliminarClip(partitId, clipId) {
     if (!confirm('Estàs segur que vols eliminar aquest clip?')) return;
-
-    const partit = partits.find(p => p.id == partitId);
-    if (!partit || !partit.clips) return;
-
-    partit.clips = partit.clips.filter(c => c.id !== clipId);
-    guardarDatos();
-    renderizarClips();
+    deleteClipFromPartido(partitId, clipId);
 }
 
 function getEmbedUrl(url) {
     try {
         // YouTube
         if (url.includes('youtube.com') || url.includes('youtu.be')) {
-            const videoId = url.includes('youtu.be') 
+            const videoId = url.includes('youtu.be')
                 ? url.split('/').pop()
                 : new URLSearchParams(new URL(url).search).get('v');
             return `https://www.youtube.com/embed/${videoId}`;
@@ -618,8 +615,9 @@ function getEmbedUrl(url) {
 }
 
 export function renderizarClips() {
+    const { elements, partidos } = getState();
     const partitId = elements.clips.selector.value;
-    const partit = partits.find(p => p.id == partitId);
+    const partit = partidos.find(p => p.id == partitId);
     const container = elements.clips.lista;
 
     // Si no hay partido seleccionado o es global, mostrar mensaje
@@ -636,7 +634,7 @@ export function renderizarClips() {
 
     // Mostrar el botón de añadir clip solo si hay un partido seleccionado
     elements.clips.addBtn.style.display = 'block';
-    
+
     // Si el partido no tiene clips o está vacío
     if (!partit.clips || partit.clips.length === 0) {
         container.innerHTML = `
@@ -675,8 +673,9 @@ export function renderizarClips() {
 }
 
 export function actualizarSelectorClips(selectedId = 'global') {
+    const { elements, partidos } = getState();
     const options = [`<option value="global">Selecciona un partit</option>`];
-    partits.forEach(p => {
+    partidos.forEach(p => {
         options.push(`<option value="${p.id}" ${p.id == selectedId ? 'selected' : ''}>
             ${p.nom} ${p.resultat ? `(${p.resultat})` : ''}
         </option>`);
@@ -686,6 +685,7 @@ export function actualizarSelectorClips(selectedId = 'global') {
 
 // Función helper para establecer los event listeners de la tabla de estadísticas
 export function setupEstadisticasListeners(primerJugadorId) {
+    const { elements } = getState();
     const analyticsContainer = document.getElementById('analytics-container');
     if (analyticsContainer) {
         analyticsContainer.innerHTML = `
@@ -728,14 +728,14 @@ export function setupEstadisticasListeners(primerJugadorId) {
 export function resetearAplicacion() {
     if (confirm('Estàs segur que vols esborrar totes les dades? Aquesta acció no es pot desfer.')) {
         // Limpiar datos
-        setPartits([]);
+        setPartidos([]);
         setPartitSeleccionat('global');
         setJugadoresDisponibles([]);
-        
+
         // Limpiar localStorage
         localStorage.removeItem('partits');
         localStorage.removeItem('partitSeleccionat');
-        
+
         // Resetear la interfaz
         actualizarSelectorPartits();
         actualizarSelectorClips();
@@ -743,7 +743,7 @@ export function resetearAplicacion() {
         renderizarClips();
         renderizarCarrusel();
         renderizarAlineacion(generarMejorAlineacion());
-        
+
         alert('S\'han esborrat totes les dades correctament');
     }
 }
