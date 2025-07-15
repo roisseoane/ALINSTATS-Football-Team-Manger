@@ -49,7 +49,7 @@ footer {
 
 /* Campo y Overlay */
 .campo-container {
-    width: 100%;
+    width: 75%;
     max-width: 450px; /* Better size for mobile */
     aspect-ratio: 5 / 8;
     position: relative;
