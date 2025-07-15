@@ -1,4 +1,5 @@
-import { getState, setPartidos, setPartitSeleccionat } from './state.js';
+import { getState } from './state.js';
+import { data as defaultData } from './data.js';
 
 // Función para guardar partidos y estadísticas en localStorage
 export function guardarDatos() {
@@ -7,14 +8,22 @@ export function guardarDatos() {
     localStorage.setItem('partitSeleccionat', partitSeleccionat);
 }
 
-// Función para cargar partidos y estadísticas de localStorage
-export function cargarDatos() {
+// Función para cargar los datos iniciales
+export function cargarDatosIniciales() {
     const savedPartits = localStorage.getItem('partits');
-    if (savedPartits) {
-        setPartidos(JSON.parse(savedPartits));
-    }
     const savedPartitSel = localStorage.getItem('partitSeleccionat');
-    if (savedPartitSel) {
-        setPartitSeleccionat(savedPartitSel);
+
+    if (savedPartits) {
+        return {
+            ...defaultData,
+            partidos: JSON.parse(savedPartits),
+            partitSeleccionat: savedPartitSel || 'global'
+        };
+    } else {
+        return {
+            ...defaultData,
+            partidos: [],
+            partitSeleccionat: 'global'
+        };
     }
 }
