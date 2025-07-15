@@ -1219,51 +1219,6 @@ function actualizarSelectorClips(selectedId = 'global') {
     elements.clips.selector.innerHTML = options.join('');
 }
 
-function activarTab(tab) {
-    // Ocultar todas las secciones
-    elements.sections.alineacio.style.display = 'none';
-    elements.sections.estadistiques.style.display = 'none';
-    elements.sections.clips.style.display = 'none';
-
-    // Gestionar visibilidad del carrusel
-    document.querySelector('.carrusel-container').style.display = tab === 'alineacio' ? 'block' : 'none';
-
-    // Mostrar todos los botones de navegación
-    elements.nav.btnEstadistiques.style.display = 'block';
-    elements.nav.btnAlineacio.style.display = 'block';
-    elements.nav.btnClips.style.display = 'block';
-
-    // Quitar clase active de todos los botones
-    elements.nav.btnEstadistiques.classList.remove('active');
-    elements.nav.btnAlineacio.classList.remove('active');
-    elements.nav.btnClips.classList.remove('active');
-
-    // Hacer scroll al inicio de la página
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    // Activar la sección correspondiente
-    if (tab === 'alineacio') {
-        elements.sections.alineacio.style.display = 'block';
-        document.querySelector('footer').style.display = 'block';
-        elements.nav.btnAlineacio.classList.add('active');
-    } else if (tab === 'estadistiques') {
-        elements.sections.estadistiques.style.display = 'block';
-        elements.nav.btnEstadistiques.classList.add('active');
-        renderizarEstadistiques();
-    } else if (tab === 'clips') {
-        elements.sections.clips.style.display = 'block';
-        elements.nav.btnClips.classList.add('active');
-        // Actualizar el selector de clips antes de renderizar
-        actualizarSelectorClips();
-        renderizarClips();
-    }
-
-    // Actualizar el estado de los botones
-    elements.nav.btnAlineacio.title = tab === 'alineacio' ? 'Secció actual' : 'Anar a Alineació';
-    elements.nav.btnEstadistiques.title = tab === 'estadistiques' ? 'Secció actual' : 'Anar a Estadístiques';
-    elements.nav.btnClips.title = tab === 'clips' ? 'Secció actual' : 'Anar a Clips';
-}
-
 // Función helper para establecer los event listeners de la tabla de estadísticas
 function setupEstadisticasListeners() {
     const analyticsContainer = document.getElementById('analytics-container');
