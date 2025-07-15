@@ -1,5 +1,5 @@
-import { initElements, getState, setAlineacionActual, setPartitSeleccionat } from './state.js';
-import { cargarDatos } from './api.js';
+import { initElements, getState, setAlineacionActual, setPartitSeleccionat, inicializarEstado } from './state.js';
+import { cargarDatosIniciales } from './api.js';
 import { renderizarCarrusel, renderizarAlineacion, activarTab, actualizarSelectorPartits, renderizarEstadistiques, crearNuevoPartido, mostrarEdicionEstadisticasHoja, renderizarClips, mostrarFormularioClip, cerrarModal, actualizarSelectorClips } from './ui.js';
 
 export function generarMejorAlineacion() {
@@ -52,7 +52,8 @@ export function generarMejorAlineacion() {
 
 document.addEventListener('DOMContentLoaded', () => {
     initElements();
-    cargarDatos();
+    const datosIniciales = cargarDatosIniciales();
+    inicializarEstado(datosIniciales);
     const { elements, partitSeleccionat } = getState();
 
     // Event Listeners for Stats
