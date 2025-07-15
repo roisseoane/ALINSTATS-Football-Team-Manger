@@ -1,10 +1,11 @@
-import { partits, partitSeleccionat, plantilla } from './state.js';
+import { getState } from './state.js';
 import { calcularMvpFlow } from './ui.js';
 
 let chartRendimiento = null;
 let chartRadar = null;
 
 export function mostrarGraficasJugador(jugadorId) {
+    const { partidos, partitSeleccionat, plantilla } = getState();
     const ctxRend = document.getElementById('chart-rendimiento').getContext('2d');
     const ctxRadar = document.getElementById('chart-mvp').getContext('2d');
 
@@ -17,14 +18,14 @@ export function mostrarGraficasJugador(jugadorId) {
     // Limpiar gráficos anteriores
     if (chartRendimiento) chartRendimiento.destroy();
     if (chartRadar) chartRadar.destroy();    // Datos de rendimiento por partido
-    const partidosJugador = partits.map(p => {
+    const partidosJugador = partidos.map(p => {
         const stats = p.estadistiques?.[jugadorId] || {};
         return {
             partido: p.nom,
             mvp: calcularMvpFlow(stats),
             stats: stats
         };
-    }).sort((a, b) => partits.findIndex(p => p.nom === a.partido) - partits.findIndex(p => p.nom === b.partido));
+    }).sort((a, b) => partidos.findIndex(p => p.nom === a.partido) - partidos.findIndex(p => p.nom === b.partido));
 
     const mvpData = partidosJugador.map(p => p.mvp);
     const mediaMovil = mvpData.map((val, idx, arr) => {
@@ -151,7 +152,7 @@ export function mostrarGraficasJugador(jugadorId) {
 
     if (partitSeleccionat === 'global') {
         // Sumar todos los partidos del jugador
-        stats = partits.reduce((acc, p) => {
+        stats = partidos.reduce((acc, p) => {
             const s = p.estadistiques?.[jugadorId] || {};
             acc.goles += s.goles || 0;
             acc.asistencias += s.asistencias || 0;
@@ -164,7 +165,7 @@ export function mostrarGraficasJugador(jugadorId) {
         // Calcular media del equipo
         let totalJugadores = plantilla.length;
         plantilla.forEach(jugador => {
-            let statsJugador = partits.reduce((acc, p) => {
+            let statsJugador = partidos.reduce((acc, p) => {
                 const s = p.estadistiques?.[jugador.id] || {};
                 acc.goles += s.goles || 0;
                 acc.asistencias += s.asistencias || 0;
@@ -186,7 +187,7 @@ export function mostrarGraficasJugador(jugadorId) {
             mediaEquipo[key] = mediaEquipo[key] / totalJugadores;
         });
     } else {
-        const p = partits.find(p => p.id == partitSeleccionat);
+        const p = partidos.find(p => p.id == partitSeleccionat);
         stats = p?.estadistiques?.[jugadorId] || {goles:0, asistencias:0, chutes:0, perdidas:0, recuperaciones:0};
 
         // Calcular media del equipo para el partido seleccionado

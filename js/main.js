@@ -1,14 +1,15 @@
-import { initElements, elements, partitSeleccionat, setAlineacionActual, habilidadPorPosicion, jugadoresDisponibles } from './state.js';
-import { cargarDatos, guardarDatos } from './api.js';
+import { initElements, getState, setAlineacionActual, setPartitSeleccionat } from './state.js';
+import { cargarDatos } from './api.js';
 import { renderizarCarrusel, renderizarAlineacion, activarTab, actualizarSelectorPartits, renderizarEstadistiques, crearNuevoPartido, mostrarEdicionEstadisticasHoja, renderizarClips, mostrarFormularioClip, cerrarModal, actualizarSelectorClips } from './ui.js';
 
 export function generarMejorAlineacion() {
+    const { jugadoresDisponibles, habilidadPorPosicion } = getState();
     const alineacion = {
-        portero: {titular: null, suplentes: []},
-        cierre: {titular: null, suplentes: []},
-        alaIzquierdo: {titular: null, suplentes: []},
-        alaDerecho: {titular: null, suplentes: []},
-        pivot: {titular: null, suplentes: []}
+        portero: { titular: null, suplentes: [] },
+        cierre: { titular: null, suplentes: [] },
+        alaIzquierdo: { titular: null, suplentes: [] },
+        alaDerecho: { titular: null, suplentes: [] },
+        pivot: { titular: null, suplentes: [] }
     };
 
     let jugadoresPorAsignar = [...jugadoresDisponibles];
@@ -27,13 +28,13 @@ export function generarMejorAlineacion() {
     // Assign substitutes
     let restantes = [...jugadoresPorAsignar];
     while (restantes.length > 0) {
-        let mejor = {jugadorId: null, posicion: null, ranking: Infinity};
+        let mejor = { jugadorId: null, posicion: null, ranking: Infinity };
         for (const id of restantes) {
             for (const pos in habilidadPorPosicion) {
                 if (!alineacion[pos].titular) continue;
                 const rank = habilidadPorPosicion[pos].indexOf(id);
                 if (rank !== -1 && rank < mejor.ranking && !Object.values(alineacion).some(p => p.suplentes.includes(id))) {
-                    mejor = {jugadorId: id, posicion: pos, ranking: rank};
+                    mejor = { jugadorId: id, posicion: pos, ranking: rank };
                 }
             }
         }
@@ -52,6 +53,7 @@ export function generarMejorAlineacion() {
 document.addEventListener('DOMContentLoaded', () => {
     initElements();
     cargarDatos();
+    const { elements, partitSeleccionat } = getState();
 
     // Event Listeners for Stats
     if (elements.stats.addBtn) {
@@ -60,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (elements.stats.editBtn) {
         elements.stats.editBtn.addEventListener('click', () => {
+            const { partitSeleccionat } = getState();
             if (partitSeleccionat && partitSeleccionat !== 'global') {
                 mostrarEdicionEstadisticasHoja(partitSeleccionat);
             }
@@ -69,11 +72,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (elements.stats.selector) {
         elements.stats.selector.addEventListener('change', (e) => {
             setPartitSeleccionat(e.target.value);
-            guardarDatos();
-            if (elements.stats.editBtn) {
-                elements.stats.editBtn.style.display = partitSeleccionat !== 'global' ? 'block' : 'none';
-            }
-            renderizarEstadistiques();
         });
     }
 
