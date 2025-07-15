@@ -45,9 +45,9 @@ const inicialesPosicion = {
 };
 
 const coordenadasPosiciones = {
-    portero: {top: '112%', left: '50%'},
-    cierre: {top: '75%', left: '50%'},
-    alaIzquierdo: {top: '45%', left: '30%'},
-    alaDerecho: {top: '45%', left: '70%'},
-    pivot: {top: '25%', left: '50%'}
+    portero: {top: '90%', left: '50%'},
+    cierre: {top: '65%', left: '50%'},
+    alaIzquierdo: {top: '45%', left: '20%'},
+    alaDerecho: {top: '45%', left: '80%'},
+    pivot: {top: '20%', left: '50%'}
 };
