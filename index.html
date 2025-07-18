@@ -42,13 +42,19 @@
                     <div class="overlay" id="overlay-fichas"></div>
                 </div>
                 <div class="pissarra-integrada-controls" style="display: flex; justify-content: center; margin-top: 10px;">
-                    <button id="btn-activar-pissarra" class="nav-btn">Activar Pissarra</button>
+                    <button id="pissarra-toggle-button" class="nav-btn">Activar Pissarra</button>
                 </div>
-                <div id="panel-creacion" style="display: none; margin-top: 10px;">
-                    <button id="btn-iniciar-grabacion" class="nav-btn">Iniciar Gravació</button>
-                    <button id="btn-afegir-moviment" class="nav-btn">Afegir Moviment</button>
-                    <button id="btn-desfer-moviment" class="nav-btn">Desfer</button>
-                    <button id="btn-finalitzar-jugada" class="nav-btn">Finalitzar i Guardar</button>
+                <div id="pissarra-container" style="display: none;">
+                    <div id="panel-creacion" style="margin-top: 10px;">
+                        <button id="btn-iniciar-grabacion" class="nav-btn">Iniciar Gravació</button>
+                        <button id="btn-afegir-moviment" class="nav-btn">Afegir Moviment</button>
+                        <button id="btn-desfer-moviment" class="nav-btn">Desfer</button>
+                        <button id="btn-finalitzar-jugada" class="nav-btn">Finalitzar i Guardar</button>
+                    </div>
+                    <div id="galeria-jugades">
+                        <h3>Jugades Guardades</h3>
+                        <div id="llista-jugades"></div>
+                    </div>
                 </div>
             </div>
             <div id="galeria-jugades" style="display: none;">

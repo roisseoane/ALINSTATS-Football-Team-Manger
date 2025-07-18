@@ -763,19 +763,16 @@ export function calcularMvpFlow(stats) {
 }
 
 export function togglePissarraMode(activar) {
-    const { elements, plantilla, coordenadasPosiciones } = getState();
+    const { elements, coordenadasPosiciones } = getState();
     const carrusel = document.querySelector('.carrusel-container');
-    const panelCreacion = document.getElementById('panel-creacion');
-    const galeriaJugades = document.getElementById('galeria-jugades');
-    const btnActivarPissarra = document.getElementById('btn-activar-pissarra');
+    const pissarraContainer = document.getElementById('pissarra-container');
+    const toggleButton = document.getElementById('pissarra-toggle-button');
     const overlay = document.getElementById('overlay-fichas');
 
     if (activar) {
         carrusel.style.display = 'none';
-        panelCreacion.style.display = 'block';
-        galeriaJugades.style.display = 'block';
-        btnActivarPissarra.textContent = 'Desactivar Pissarra';
-        btnActivarPissarra.classList.add('active');
+        pissarraContainer.style.display = 'block';
+        toggleButton.textContent = 'Desactivar Pissarra';
 
         // Posicionar jugadores locales en rombo 1-2-1
         const { alineacionActual } = getState();
@@ -792,7 +789,7 @@ export function togglePissarraMode(activar) {
             if (idTitular) {
                 const ficha = document.getElementById(`jugador-${idTitular}`);
                 if (ficha && posicionesRombo[pos]) {
-                    ficha.style.transform = `translate(${posicionesRombo[pos].left}, ${posicionesRombo[pos].top})`;
+                    ficha.style.transform = `translate(-50%, -50%) translate(${posicionesRombo[pos].left}, ${posicionesRombo[pos].top})`;
                 }
             }
         }
@@ -815,10 +812,8 @@ export function togglePissarraMode(activar) {
 
     } else {
         carrusel.style.display = 'block';
-        panelCreacion.style.display = 'none';
-        galeriaJugades.style.display = 'none';
-        btnActivarPissarra.textContent = 'Activar Pissarra';
-        btnActivarPissarra.classList.remove('active');
+        pissarraContainer.style.display = 'none';
+        toggleButton.textContent = 'Activar Pissarra';
 
         // Eliminar rivales y pelota
         const rivales = overlay.querySelectorAll('.jugador-pissarra.rival');
