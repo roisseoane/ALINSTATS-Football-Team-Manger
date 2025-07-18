@@ -1,5 +1,5 @@
 import { initElements, getState, setAlineacionActual, setPartitSeleccionat, inicializarEstado } from './state.js';
-import { cargarDatosIniciales } from './api.js';
+import { cargarDatosIniciales, exportarDatos, importarDatos } from './api.js';
 import { renderizarCarrusel, renderizarAlineacion, activarTab, actualizarSelectorPartits, renderizarEstadistiques, crearNuevoPartido, mostrarEdicionEstadisticasHoja, renderizarClips, mostrarFormularioClip, cerrarModal, actualizarSelectorClips } from './ui.js';
 
 export function generarMejorAlineacion() {
@@ -73,6 +73,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (elements.stats.selector) {
         elements.stats.selector.addEventListener('change', (e) => {
             setPartitSeleccionat(e.target.value);
+        });
+    }
+
+    if (elements.stats.backupBtn) {
+        elements.stats.backupBtn.addEventListener('click', exportarDatos);
+    }
+
+    if (elements.stats.restoreBtn) {
+        elements.stats.restoreBtn.addEventListener('click', () => {
+            importarDatos(() => {
+                // Callback para actualizar la UI después de la importación
+                const datosIniciales = cargarDatosIniciales();
+                inicializarEstado(datosIniciales);
+                const { partitSeleccionat } = getState();
+                renderizarCarrusel();
+                renderizarAlineacion(generarMejorAlineacion());
+                activarTab('estadistiques');
+                actualizarSelectorPartits(partitSeleccionat);
+                actualizarSelectorClips();
+                renderizarEstadistiques();
+            });
         });
     }
 
