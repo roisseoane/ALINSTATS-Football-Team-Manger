@@ -767,3 +767,73 @@ input, select, textarea {
         background: rgba(0, 170, 255, 0.1);
     }
 }
+
+.pissarra-integrada-controls {
+    text-align: center;
+    padding: 10px;
+}
+
+#panel-creacion, #galeria-jugades {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.jugador-pissarra {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: bold;
+    cursor: grab;
+    transition: transform 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    border: 2px solid rgba(255,255,255,0.5);
+}
+
+.pissarra-container-integrada {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.pissarra-panell {
+    background: #1c2127;
+    padding: 15px;
+    border-radius: 12px;
+}
+
+.pissarra-panell h3 {
+    color: #00aaff;
+    margin-bottom: 10px;
+}
+
+#panel-creacion {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.jugador-pissarra.local {
+    background-color: #007bff;
+}
+
+.jugador-pissarra.rival {
+    background-color: #dc3545;
+}
+
+.pilota-pissarra {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #ffc107;
+    position: absolute;
+    cursor: grab;
+    transition: transform 0.3s ease;
+}

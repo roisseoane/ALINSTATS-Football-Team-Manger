@@ -9,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/pissarra.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
 </head>
@@ -41,6 +42,31 @@
                     </svg>
                     <div class="overlay" id="overlay-fichas"></div>
                 </div>
+                <div class="pissarra-integrada-controls" style="display: flex; justify-content: center; margin-top: 10px;">
+                    <button id="pissarra-toggle-button" class="nav-btn">Activar Pissarra</button>
+                </div>
+                <div id="pissarra-container" class="pissarra-container-integrada" style="display: none;">
+                    <div class="pissarra-panell">
+                        <h3>Crear Jugada</h3>
+                        <div id="panel-creacion">
+                            <button id="btn-iniciar-grabacion" class="nav-btn"><i class="fas fa-play-circle"></i> Iniciar</button>
+                            <button id="btn-afegir-moviment" class="nav-btn"><i class="fas fa-plus"></i> Afegir</button>
+                            <button id="btn-desfer-moviment" class="nav-btn"><i class="fas fa-undo"></i> Desfer</button>
+                            <button id="btn-finalitzar-jugada" class="nav-btn"><i class="fas fa-save"></i> Guardar</button>
+                        </div>
+                    </div>
+                    <div class="pissarra-panell">
+                        <h3>Jugades Guardades</h3>
+                        <div id="llista-jugades"></div>
+                    </div>
+                    <div class="pissarra-panell">
+                        <button id="btn-reiniciar-posicions" class="nav-btn"><i class="fas fa-sync"></i> Reiniciar Posicions</button>
+                    </div>
+                </div>
+            </div>
+            <div id="galeria-jugades" style="display: none;">
+                <h3>Jugades Guardades</h3>
+                <div id="llista-jugades"></div>
             </div>
         </section>
         <section id="section-estadistiques" style="display:none;">            <div class="section-header">
@@ -129,5 +155,6 @@
         <div id="modal-content"></div>
     </div>
     <script type="module" src="js/main.js"></script>
+    <script type="module" src="js/pissarra-integrada.js"></script>
 </body>
 </html>
