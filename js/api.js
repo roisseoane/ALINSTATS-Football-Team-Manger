@@ -30,7 +30,7 @@ export function cargarDatosIniciales() {
 
 export function exportarDatos() {
     const data = {};
-    const keysToExport = ['partits', 'partitSeleccionat']; // Añade otras claves si es necesario
+    const keysToExport = ['partits', 'partitSeleccionat'];
 
     keysToExport.forEach(key => {
         const value = localStorage.getItem(key);
@@ -81,28 +81,21 @@ export function importarDatos(callback) {
                 const jsonString = pako.inflate(compressedData, { to: 'string' });
                 const data = JSON.parse(jsonString);
 
-                // Validar que el backup no esté vacío
                 if (!data || Object.keys(data).length === 0) {
                     alert('El archivo de backup está vacío o corrupto.');
                     return;
                 }
 
-                // Pedir confirmación al usuario
                 if (confirm('¿Estás seguro de que quieres restaurar esta copia de seguridad? Se sobrescribirán todos los datos actuales.')) {
-                    // Limpiar localStorage actual
-                    Object.keys(localStorage).forEach(key => {
-                        if (key.startsWith('alinstats')) {
-                            localStorage.removeItem(key);
-                        }
-                    });
+                    localStorage.removeItem('partits');
+                    localStorage.removeItem('partitSeleccionat');
 
-                    // Cargar nuevos datos
                     for (const key in data) {
                         localStorage.setItem(key, JSON.stringify(data[key]));
                     }
 
-                    alert('Datos restaurados correctamente. La aplicación se recargará.');
-                    location.reload();
+                    alert('Datos restaurados correctamente.');
+                    if (callback) callback();
                 }
             } catch (error) {
                 console.error('Error al importar los datos:', error);

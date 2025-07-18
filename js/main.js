@@ -83,16 +83,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (elements.stats.restoreBtn) {
         elements.stats.restoreBtn.addEventListener('click', () => {
             importarDatos(() => {
-                // Callback para actualizar la UI después de la importación
                 const datosIniciales = cargarDatosIniciales();
                 inicializarEstado(datosIniciales);
                 const { partitSeleccionat } = getState();
-                renderizarCarrusel();
-                renderizarAlineacion(generarMejorAlineacion());
-                activarTab('estadistiques');
                 actualizarSelectorPartits(partitSeleccionat);
                 actualizarSelectorClips();
                 renderizarEstadistiques();
+                renderizarClips();
+                renderizarCarrusel();
+                renderizarAlineacion(generarMejorAlineacion());
+                activarTab('estadistiques');
             });
         });
     }
