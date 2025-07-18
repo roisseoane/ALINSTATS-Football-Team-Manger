@@ -1,0 +1,49 @@
+/* Estilos para la Pissarra Tàctica */
+.pissarra-container {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.pissarra-camp {
+    width: 100%;
+    background-color: #a0c4ff;
+    border: 4px solid #fff;
+}
+
+.jugador, .pilota {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-weight: bold;
+    cursor: grab;
+    user-select: none;
+}
+
+.jugador.local {
+    background-color: #ff0000;
+}
+
+.jugador.visitant {
+    background-color: #0000ff;
+}
+
+.pilota {
+    background-color: #ffff00;
+    width: 20px;
+    height: 20px;
+}
+
+.pissarra-controls {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+}

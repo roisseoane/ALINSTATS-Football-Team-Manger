@@ -99,6 +99,7 @@ export function activarTab(tab) {
     elements.sections.alineacio.style.display = 'none';
     elements.sections.estadistiques.style.display = 'none';
     elements.sections.clips.style.display = 'none';
+    elements.sections.pissarra.style.display = 'none';
 
     // Gestionar visibilidad del carrusel
     document.querySelector('.carrusel-container').style.display = tab === 'alineacio' ? 'block' : 'none';
@@ -112,6 +113,7 @@ export function activarTab(tab) {
     elements.nav.btnEstadistiques.classList.remove('active');
     elements.nav.btnAlineacio.classList.remove('active');
     elements.nav.btnClips.classList.remove('active');
+    elements.nav.btnPissarra.classList.remove('active');
 
     // Hacer scroll al inicio de la página
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -131,12 +133,16 @@ export function activarTab(tab) {
         // Actualizar el selector de clips antes de renderizar
         actualizarSelectorClips();
         renderizarClips();
+    } else if (tab === 'pissarra') {
+        elements.sections.pissarra.style.display = 'block';
+        elements.nav.btnPissarra.classList.add('active');
     }
 
     // Actualizar el estado de los botones
     elements.nav.btnAlineacio.title = tab === 'alineacio' ? 'Secció actual' : 'Anar a Alineació';
     elements.nav.btnEstadistiques.title = tab === 'estadistiques' ? 'Secció actual' : 'Anar a Estadístiques';
     elements.nav.btnClips.title = tab === 'clips' ? 'Secció actual' : 'Anar a Clips';
+    elements.nav.btnPissarra.title = tab === 'pissarra' ? 'Secció actual' : 'Anar a Pissarra';
 }
 
 export function actualizarSelectorPartits(selectedId = 'global') {

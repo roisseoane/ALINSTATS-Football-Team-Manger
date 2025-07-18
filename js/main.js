@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.nav.btnEstadistiques.addEventListener('click', () => activarTab('estadistiques'));
     elements.nav.btnAlineacio.addEventListener('click', () => activarTab('alineacio'));
     elements.nav.btnClips.addEventListener('click', () => activarTab('clips'));
+    elements.nav.btnPissarra.addEventListener('click', () => activarTab('pissarra'));
     elements.modal.backdrop.addEventListener('click', cerrarModal);
 
     // Initial render
