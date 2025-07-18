@@ -99,7 +99,6 @@ export function activarTab(tab) {
     elements.sections.alineacio.style.display = 'none';
     elements.sections.estadistiques.style.display = 'none';
     elements.sections.clips.style.display = 'none';
-    elements.sections.pissarra.style.display = 'none';
 
     // Gestionar visibilidad del carrusel
     document.querySelector('.carrusel-container').style.display = tab === 'alineacio' ? 'block' : 'none';
@@ -113,7 +112,6 @@ export function activarTab(tab) {
     elements.nav.btnEstadistiques.classList.remove('active');
     elements.nav.btnAlineacio.classList.remove('active');
     elements.nav.btnClips.classList.remove('active');
-    elements.nav.btnPissarra.classList.remove('active');
 
     // Hacer scroll al inicio de la página
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -133,16 +131,12 @@ export function activarTab(tab) {
         // Actualizar el selector de clips antes de renderizar
         actualizarSelectorClips();
         renderizarClips();
-    } else if (tab === 'pissarra') {
-        elements.sections.pissarra.style.display = 'block';
-        elements.nav.btnPissarra.classList.add('active');
     }
 
     // Actualizar el estado de los botones
     elements.nav.btnAlineacio.title = tab === 'alineacio' ? 'Secció actual' : 'Anar a Alineació';
     elements.nav.btnEstadistiques.title = tab === 'estadistiques' ? 'Secció actual' : 'Anar a Estadístiques';
     elements.nav.btnClips.title = tab === 'clips' ? 'Secció actual' : 'Anar a Clips';
-    elements.nav.btnPissarra.title = tab === 'pissarra' ? 'Secció actual' : 'Anar a Pissarra';
 }
 
 export function actualizarSelectorPartits(selectedId = 'global') {
@@ -765,4 +759,75 @@ export function calcularMvpFlow(stats) {
     puntos += Math.min(stats.goles_a_favor || 0, 8) * 0.25;
     puntos -= Math.min(stats.goles_en_contra || 0, 8) * 0.25;
     return Math.max(1.0, Math.min(puntos, 10.0));
+}
+
+export function togglePissarraMode(activar) {
+    const { elements, plantilla } = getState();
+    const carrusel = document.querySelector('.carrusel-container');
+    const panelCreacion = document.getElementById('panel-creacion');
+    const galeriaJugades = document.getElementById('galeria-jugades');
+    const btnActivarPissarra = document.getElementById('btn-activar-pissarra');
+    const overlay = document.getElementById('overlay-fichas');
+
+    if (activar) {
+        carrusel.style.display = 'none';
+        panelCreacion.style.display = 'block';
+        galeriaJugades.style.display = 'block';
+        btnActivarPissarra.textContent = 'Desactivar Pissarra';
+
+        // Posicionar jugadores locales en rombo 1-2-1
+        const { alineacionActual } = getState();
+        const jugadores = [];
+        for (const pos in alineacionActual) {
+            if (alineacionActual[pos].titular) {
+                jugadores.push(alineacionActual[pos].titular);
+            }
+        }
+
+        const posicionesRombo = {
+            portero: { top: '90%', left: '50%' },
+            cierre: { top: '70%', left: '50%' },
+            alaIzquierdo: { top: '50%', left: '25%' },
+            alaDerecho: { top: '50%', left: '75%' },
+            pivot: { top: '30%', left: '50%' }
+        };
+
+        const fichas = overlay.querySelectorAll('.ficha-container');
+        fichas.forEach(ficha => {
+            const pos = Object.keys(coordenadasPosiciones).find(key => coordenadasPosiciones[key].top === ficha.style.top && coordenadasPosiciones[key].left === ficha.style.left);
+            if (pos && posicionesRombo[pos]) {
+                ficha.style.top = posicionesRombo[pos].top;
+                ficha.style.left = posicionesRombo[pos].left;
+            }
+        });
+
+        // Añadir rivales y pelota
+        for (let i = 0; i < 5; i++) {
+            const rival = document.createElement('div');
+            rival.className = 'jugador-pissarra rival';
+            rival.style.left = `${10 + i * 20}%`;
+            rival.style.top = '10%';
+            overlay.appendChild(rival);
+        }
+        const pilota = document.createElement('div');
+        pilota.className = 'pilota-pissarra';
+        pilota.style.left = '50%';
+        pilota.style.top = '50%';
+        overlay.appendChild(pilota);
+
+    } else {
+        carrusel.style.display = 'block';
+        panelCreacion.style.display = 'none';
+        galeriaJugades.style.display = 'none';
+        btnActivarPissarra.textContent = 'Activar Pissarra';
+
+        // Eliminar rivales y pelota
+        const rivales = overlay.querySelectorAll('.jugador-pissarra.rival');
+        rivales.forEach(rival => rival.remove());
+        const pilota = overlay.querySelector('.pilota-pissarra');
+        if (pilota) pilota.remove();
+
+        // Restaurar posiciones originales
+        renderizarAlineacion(getState().alineacionActual);
+    }
 }

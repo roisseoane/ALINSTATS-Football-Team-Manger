@@ -28,8 +28,7 @@ const state = {
         sections: {
             alineacio: null,
             estadistiques: null,
-            clips: null,
-            pissarra: null
+            clips: null
         },
         stats: {
             selector: null,
@@ -45,8 +44,7 @@ const state = {
         nav: {
             btnEstadistiques: null,
             btnAlineacio: null,
-            btnClips: null,
-            btnPissarra: null
+            btnClips: null
         }
     }
 };
@@ -158,7 +156,6 @@ export function initElements() {
     state.elements.sections.alineacio = document.getElementById('section-alineacio');
     state.elements.sections.estadistiques = document.getElementById('section-estadistiques');
     state.elements.sections.clips = document.getElementById('section-clips');
-    state.elements.sections.pissarra = document.getElementById('section-pissarra');
     state.elements.stats.selector = document.getElementById('partit-selector');
     state.elements.stats.lista = document.getElementById('estadistiques-lista');
     state.elements.stats.addBtn = document.getElementById('add-match-btn');
@@ -169,5 +166,4 @@ export function initElements() {
     state.elements.nav.btnEstadistiques = document.getElementById('btn-estadistiques');
     state.elements.nav.btnAlineacio = document.getElementById('btn-alineacio');
     state.elements.nav.btnClips = document.getElementById('btn-clips');
-    state.elements.nav.btnPissarra = document.getElementById('btn-pissarra');
 }
