@@ -93,18 +93,8 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.nav.btnEstadistiques.addEventListener('click', () => activarTab('estadistiques'));
     elements.nav.btnAlineacio.addEventListener('click', () => activarTab('alineacio'));
     elements.nav.btnClips.addEventListener('click', () => activarTab('clips'));
+    elements.nav.btnPissarra.addEventListener('click', () => activarTab('pissarra-autonoma'));
     elements.modal.backdrop.addEventListener('click', cerrarModal);
-
-    const toggleButton = document.getElementById('pissarra-toggle-button');
-    const pissarraContainer = document.getElementById('pissarra-container');
-
-    if (toggleButton && pissarraContainer) {
-        toggleButton.addEventListener('click', () => {
-            toggleButton.classList.toggle('active');
-            pissarraContainer.classList.toggle('visible');
-            togglePissarraMode(toggleButton.classList.contains('active'));
-        });
-    }
 
     // Initial render
     renderizarCarrusel();

@@ -1,0 +1,25 @@
+/* Estilos para la Pissarra Tàctica Autònoma */
+.pissarra-autonoma-container {
+    display: flex;
+    gap: 20px;
+}
+
+.pissarra-autonoma-camp {
+    width: 70%;
+    aspect-ratio: 5 / 8;
+    background-color: #a0c4ff;
+    border: 4px solid #fff;
+    position: relative;
+}
+
+#pissarra-autonoma-elements {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.pissarra-autonoma-controls {
+    width: 30%;
+}

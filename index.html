@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/pissarra.css">
+    <link rel="stylesheet" href="css/pissarra-autonoma.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
@@ -121,6 +121,16 @@
             </div>
             <div id="clips-lista" class="clips-grid"></div>
         </section>
+        <section id="section-pissarra-autonoma" style="display:none;">
+            <div class="pissarra-autonoma-container">
+                <div class="pissarra-autonoma-camp">
+                    <div id="pissarra-autonoma-elements"></div>
+                </div>
+                <div class="pissarra-autonoma-controls">
+                    <!-- Paneles de control se añadirán aquí -->
+                </div>
+            </div>
+        </section>
     </main>
     <div class="carrusel-container">
         <h2>JUGADORS DISPONIBLES</h2>
@@ -139,6 +149,10 @@
             <i class="fas fa-film"></i>
             Clips
         </button>
+        <button id="btn-pissarra" class="nav-btn">
+            <i class="fas fa-chalkboard"></i>
+            Pissarra
+        </button>
     </div>    <footer>
     </footer>
     <div id="modal-backdrop" class="modal-backdrop"></div>
@@ -146,6 +160,6 @@
         <div id="modal-content"></div>
     </div>
     <script type="module" src="js/main.js"></script>
-    <script type="module" src="js/pissarra-integrada.js"></script>
+    <script type="module" src="js/pissarra-autonoma.js"></script>
 </body>
 </html>
