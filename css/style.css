@@ -792,6 +792,32 @@ input, select, textarea {
     font-weight: bold;
     cursor: grab;
     transition: transform 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    border: 2px solid rgba(255,255,255,0.5);
+}
+
+.pissarra-container-integrada {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.pissarra-panell {
+    background: #1c2127;
+    padding: 15px;
+    border-radius: 12px;
+}
+
+.pissarra-panell h3 {
+    color: #00aaff;
+    margin-bottom: 10px;
+}
+
+#panel-creacion {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
 }
 
 .jugador-pissarra.local {

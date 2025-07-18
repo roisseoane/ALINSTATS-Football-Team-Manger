@@ -44,16 +44,22 @@
                 <div class="pissarra-integrada-controls" style="display: flex; justify-content: center; margin-top: 10px;">
                     <button id="pissarra-toggle-button" class="nav-btn">Activar Pissarra</button>
                 </div>
-                <div id="pissarra-container" style="display: none;">
-                    <div id="panel-creacion" style="margin-top: 10px;">
-                        <button id="btn-iniciar-grabacion" class="nav-btn">Iniciar Gravació</button>
-                        <button id="btn-afegir-moviment" class="nav-btn">Afegir Moviment</button>
-                        <button id="btn-desfer-moviment" class="nav-btn">Desfer</button>
-                        <button id="btn-finalitzar-jugada" class="nav-btn">Finalitzar i Guardar</button>
+                <div id="pissarra-container" class="pissarra-container-integrada" style="display: none;">
+                    <div class="pissarra-panell">
+                        <h3>Crear Jugada</h3>
+                        <div id="panel-creacion">
+                            <button id="btn-iniciar-grabacion" class="nav-btn"><i class="fas fa-play-circle"></i> Iniciar</button>
+                            <button id="btn-afegir-moviment" class="nav-btn"><i class="fas fa-plus"></i> Afegir</button>
+                            <button id="btn-desfer-moviment" class="nav-btn"><i class="fas fa-undo"></i> Desfer</button>
+                            <button id="btn-finalitzar-jugada" class="nav-btn"><i class="fas fa-save"></i> Guardar</button>
+                        </div>
                     </div>
-                    <div id="galeria-jugades">
+                    <div class="pissarra-panell">
                         <h3>Jugades Guardades</h3>
                         <div id="llista-jugades"></div>
+                    </div>
+                    <div class="pissarra-panell">
+                        <button id="btn-reiniciar-posicions" class="nav-btn"><i class="fas fa-sync"></i> Reiniciar Posicions</button>
                     </div>
                 </div>
             </div>

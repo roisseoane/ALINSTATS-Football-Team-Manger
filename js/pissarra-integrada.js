@@ -1,5 +1,7 @@
 import { abrirModal, cerrarModal } from './ui.js';
 
+import { abrirModal, cerrarModal } from './ui.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     const btnIniciarGrabacion = document.getElementById('btn-iniciar-grabacion');
     const btnAfegirMoviment = document.getElementById('btn-afegir-moviment');
@@ -7,17 +9,83 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnFinalitzarJugada = document.getElementById('btn-finalitzar-jugada');
     const llistaJugades = document.getElementById('llista-jugades');
     const overlay = document.getElementById('overlay-fichas');
+    const camp = document.querySelector('.campo');
 
     let gravant = false;
     let jugadaActual = [];
     let jugadesGuardades = JSON.parse(localStorage.getItem('jugades')) || [];
+    let activeElement = null;
+    let offsetX, offsetY;
 
     function initPissarraIntegrada() {
         renderitzarGaleria();
-        btnIniciarGrabacion.addEventListener('click', iniciarGrabacion);
-        btnAfegirMoviment.addEventListener('click', afegirMoviment);
-        btnDesferMoviment.addEventListener('click', desferMoviment);
-        btnFinalitzarJugada.addEventListener('click', finalitzarJugada);
+        if (btnIniciarGrabacion) btnIniciarGrabacion.addEventListener('click', iniciarGrabacion);
+        if (btnAfegirMoviment) btnAfegirMoviment.addEventListener('click', afegirMoviment);
+        if (btnDesferMoviment) btnDesferMoviment.addEventListener('click', desferMoviment);
+        if (btnFinalitzarJugada) btnFinalitzarJugada.addEventListener('click', finalitzarJugada);
+
+        overlay.addEventListener('mousedown', startDrag);
+        document.addEventListener('mousemove', drag);
+        document.addEventListener('mouseup', endDrag);
+    }
+
+    function startDrag(e) {
+        if (e.target.classList.contains('jugador-pissarra') || e.target.classList.contains('pilota-pissarra') || e.target.closest('.ficha-container')) {
+            activeElement = e.target.closest('.ficha-container') || e.target;
+            const rect = activeElement.getBoundingClientRect();
+            offsetX = e.clientX - rect.left;
+            offsetY = e.clientY - rect.top;
+        }
+    }
+
+    function drag(e) {
+        if (!activeElement) return;
+        e.preventDefault();
+
+        const campRect = camp.getBoundingClientRect();
+        let x = e.clientX - campRect.left - offsetX;
+        let y = e.clientY - campRect.top - offsetY;
+
+        // Limitar al campo
+        x = Math.max(0, Math.min(x, campRect.width - activeElement.offsetWidth));
+        y = Math.max(0, Math.min(y, campRect.height - activeElement.offsetHeight));
+
+        activeElement.style.left = `${x}px`;
+        activeElement.style.top = `${y}px`;
+    }
+
+    function endDrag() {
+        activeElement = null;
+    }
+
+    function reiniciarPosicions() {
+        const { alineacionActual } = getState();
+        renderizarAlineacionPissarra(alineacionActual);
+        const overlay = document.getElementById('overlay-fichas');
+        const posicionesRivales = [
+            { top: '20%', left: '30%' },
+            { top: '20%', left: '70%' },
+            { top: '40%', left: '30%' },
+            { top: '40%', left: '70%' },
+            { top: '10%', left: '50%' } // Portero rival
+        ];
+        for (let i = 0; i < 5; i++) {
+            const rival = document.getElementById(`rival-${i}`);
+            if (rival) {
+                rival.style.left = posicionesRivales[i].left;
+                rival.style.top = posicionesRivales[i].top;
+            }
+        }
+        const pilota = document.getElementById('pilota');
+        if (pilota) {
+            pilota.style.left = '50%';
+            pilota.style.top = '50%';
+        }
+    }
+
+    const btnReiniciarPosicions = document.getElementById('btn-reiniciar-posicions');
+    if (btnReiniciarPosicions) {
+        btnReiniciarPosicions.addEventListener('click', reiniciarPosicions);
     }
 
     function iniciarGrabacion() {
