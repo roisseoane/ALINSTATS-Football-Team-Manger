@@ -34,7 +34,9 @@ const state = {
             selector: null,
             lista: null,
             addBtn: null,
-            editBtn: null
+            editBtn: null,
+            backupBtn: null,
+            restoreBtn: null
         },
         clips: {
             selector: null,
@@ -160,6 +162,8 @@ export function initElements() {
     state.elements.stats.lista = document.getElementById('estadistiques-lista');
     state.elements.stats.addBtn = document.getElementById('add-match-btn');
     state.elements.stats.editBtn = document.getElementById('edit-match-btn');
+    state.elements.stats.backupBtn = document.getElementById('backup-btn');
+    state.elements.stats.restoreBtn = document.getElementById('restore-btn');
     state.elements.clips.selector = document.getElementById('partit-selector-clips');
     state.elements.clips.lista = document.getElementById('clips-lista');
     state.elements.clips.addBtn = document.getElementById('add-clip-btn-main');

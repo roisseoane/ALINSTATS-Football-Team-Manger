@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
 </head>
 <body>
     <header>
@@ -57,6 +58,14 @@
                     <button id="edit-match-btn" class="nav-btn" style="display: none;">
                         <i class="fas fa-edit"></i>
                         Editar Partit
+                    </button>
+                    <button id="backup-btn" class="nav-btn">
+                        <i class="fas fa-download"></i>
+                        Descargar Backup
+                    </button>
+                    <button id="restore-btn" class="nav-btn">
+                        <i class="fas fa-upload"></i>
+                        Restaurar Backup
                     </button>
                 </div>
             </div>
