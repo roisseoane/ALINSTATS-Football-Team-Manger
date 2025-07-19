@@ -55,7 +55,6 @@ export function renderizarAlineacion(alin) {
 
         const cont = document.createElement('div');
         cont.className = 'ficha-container';
-        cont.id = `jugador-${idTitular}`;
 
         const posEl = document.createElement('div');
         posEl.className = 'posicion-nombre';
@@ -760,77 +759,4 @@ export function calcularMvpFlow(stats) {
     puntos += Math.min(stats.goles_a_favor || 0, 8) * 0.25;
     puntos -= Math.min(stats.goles_en_contra || 0, 8) * 0.25;
     return Math.max(1.0, Math.min(puntos, 10.0));
-}
-
-export function renderizarAlineacionPissarra(alin) {
-    const { elements, plantilla } = getState();
-    const overlay = document.getElementById('overlay-fichas');
-    overlay.innerHTML = ''; // Limpiar el campo
-
-    const posicionesRombo = {
-        portero: { top: '90%', left: '50%' },
-        cierre: { top: '70%', left: '50%' },
-        alaIzquierdo: { top: '50%', left: '25%' },
-        alaDerecho: { top: '50%', left: '75%' },
-        pivot: { top: '30%', left: '50%' }
-    };
-
-    for (const pos in alin) {
-        const idTitular = alin[pos].titular;
-        if (idTitular) {
-            const jugador = plantilla.find(j => j.id === idTitular);
-            const ficha = document.createElement('div');
-            ficha.className = 'jugador-pissarra local';
-            ficha.id = `jugador-${idTitular}`;
-            ficha.textContent = jugador.nombreMostrado[0];
-            ficha.style.top = posicionesRombo[pos].top;
-            ficha.style.left = posicionesRombo[pos].left;
-            overlay.appendChild(ficha);
-        }
-    }
-}
-
-export function togglePissarraMode(activar) {
-    const { elements, coordenadasPosiciones } = getState();
-    const carrusel = document.querySelector('.carrusel-container');
-    const pissarraContainer = document.getElementById('pissarra-container');
-    const toggleButton = document.getElementById('pissarra-toggle-button');
-    const overlay = document.getElementById('overlay-fichas');
-
-    if (activar) {
-        carrusel.style.display = 'none';
-        pissarraContainer.style.display = 'block';
-        toggleButton.textContent = 'Desactivar Pissarra';
-
-        renderizarAlineacionPissarra(getState().alineacionActual);
-
-        const posicionesRivales = [
-            { top: '20%', left: '30%' },
-            { top: '20%', left: '70%' },
-            { top: '40%', left: '30%' },
-            { top: '40%', left: '70%' },
-            { top: '10%', left: '50%' } // Portero rival
-        ];
-        for (let i = 0; i < 5; i++) {
-            const rival = document.createElement('div');
-            rival.className = 'jugador-pissarra rival';
-            rival.id = `rival-${i}`;
-            rival.style.left = posicionesRivales[i].left;
-            rival.style.top = posicionesRivales[i].top;
-            overlay.appendChild(rival);
-        }
-        const pilota = document.createElement('div');
-        pilota.className = 'pilota-pissarra';
-        pilota.id = 'pilota';
-        pilota.style.left = '50%';
-        pilota.style.top = '50%';
-        overlay.appendChild(pilota);
-
-    } else {
-        carrusel.style.display = 'block';
-        pissarraContainer.style.display = 'none';
-        toggleButton.textContent = 'Activar Pissarra';
-
-        renderizarAlineacion(getState().alineacionActual);
-    }
 }

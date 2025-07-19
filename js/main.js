@@ -50,8 +50,6 @@ export function generarMejorAlineacion() {
     return alineacion;
 }
 
-import { togglePissarraMode } from './ui.js';
-
 document.addEventListener('DOMContentLoaded', () => {
     initElements();
     const datosIniciales = cargarDatosIniciales();
@@ -115,17 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.nav.btnAlineacio.addEventListener('click', () => activarTab('alineacio'));
     elements.nav.btnClips.addEventListener('click', () => activarTab('clips'));
     elements.modal.backdrop.addEventListener('click', cerrarModal);
-
-    const toggleButton = document.getElementById('pissarra-toggle-button');
-    const pissarraContainer = document.getElementById('pissarra-container');
-
-    if (toggleButton && pissarraContainer) {
-        toggleButton.addEventListener('click', () => {
-            toggleButton.classList.toggle('active');
-            pissarraContainer.classList.toggle('visible');
-            togglePissarraMode(toggleButton.classList.contains('active'));
-        });
-    }
 
     // Initial render
     renderizarCarrusel();
