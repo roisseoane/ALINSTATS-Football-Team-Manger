@@ -1,6 +1,6 @@
 import { initElements, getState, setAlineacionActual, setPartitSeleccionat, inicializarEstado } from './state.js';
 import { cargarDatosIniciales, exportarDatos, importarDatos } from './api.js';
-import { renderizarCarrusel, renderizarAlineacion, activarTab, actualizarSelectorPartits, renderizarEstadistiques, crearNuevoPartido, mostrarEdicionEstadisticasHoja, renderizarClips, mostrarFormularioClip, cerrarModal, actualizarSelectorClips } from './ui.js';
+import { renderizarCarrusel, renderizarAlineacion, activarTab, actualizarSelectorPartits, renderizarEstadistiques, crearNuevoPartido, mostrarEdicionEstadisticasHoja, renderizarClips, mostrarFormularioClip, cerrarModal, actualizarSelectorClips, togglePizarraTactical } from './ui.js';
 
 export function generarMejorAlineacion() {
     const { jugadoresDisponibles, habilidadPorPosicion } = getState();
@@ -113,6 +113,10 @@ document.addEventListener('DOMContentLoaded', () => {
     elements.nav.btnAlineacio.addEventListener('click', () => activarTab('alineacio'));
     elements.nav.btnClips.addEventListener('click', () => activarTab('clips'));
     elements.modal.backdrop.addEventListener('click', cerrarModal);
+
+    if (elements.togglePizarraBtn) {
+        elements.togglePizarraBtn.addEventListener('click', togglePizarraTactical);
+    }
 
     // Initial render
     renderizarCarrusel();

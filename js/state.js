@@ -11,6 +11,7 @@ const state = {
     jugadoresDisponibles: [],
     partitSeleccionat: 'global',
     alineacionActual: {},
+    isPizarraTacticalMode: false,
     plantilla: [],
     habilidadPorPosicion: {},
     estadisticasJugadores: {},
@@ -19,6 +20,8 @@ const state = {
     elements: {
         overlay: null,
         carrusel: null,
+        campo: null,
+        togglePizarraBtn: null,
         modal: {
             backdrop: null,
             popup: null,
@@ -151,6 +154,8 @@ export function deleteClipFromPartido(partidoId, clipId) {
 export function initElements() {
     state.elements.overlay = document.getElementById('overlay-fichas');
     state.elements.carrusel = document.getElementById('carrusel-convocatoria');
+    state.elements.campo = document.getElementById('campo-juego');
+    state.elements.togglePizarraBtn = document.getElementById('toggle-pizarra-btn');
     state.elements.modal.backdrop = document.getElementById('modal-backdrop');
     state.elements.modal.popup = document.getElementById('modal-popup');
     state.elements.modal.content = document.getElementById('modal-content');
