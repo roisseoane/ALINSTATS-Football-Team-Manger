@@ -760,3 +760,11 @@ export function calcularMvpFlow(stats) {
     puntos -= Math.min(stats.goles_en_contra || 0, 8) * 0.25;
     return Math.max(1.0, Math.min(puntos, 10.0));
 }
+
+export function togglePizarraTactical() {
+    const { elements } = getState();
+    const state = getState();
+    state.isPizarraTacticalMode = !state.isPizarraTacticalMode;
+    elements.campo.classList.toggle('pizarra-activa', state.isPizarraTacticalMode);
+    elements.togglePizarraBtn.textContent = state.isPizarraTacticalMode ? 'Modo Pizarra: ON' : 'Pizarra Táctica';
+}
