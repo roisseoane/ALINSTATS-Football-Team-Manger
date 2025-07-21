@@ -49,8 +49,8 @@ footer {
 
 /* Campo y Overlay */
 .campo-container {
-    width: 75%;
-    max-width: 450px; /* Better size for mobile */
+    width: 90vw;
+    max-width: 450px; /* Max width for larger screens */
     aspect-ratio: 5 / 8;
     position: relative;
     margin: 0 auto;
@@ -861,27 +861,46 @@ input, select, textarea {
 .pizarra-jugador-local {
     background-color: #007bff;
     border: 2px solid rgba(255, 255, 255, 0.8);
-    width: 45px;
-    height: 45px;
+    width: 8vw;
+    height: 8vw;
+    max-width: 45px;
+    max-height: 45px;
     font-size: 14px;
 }
 
 .pizarra-jugador-rival {
     background-color: #dc3545;
     border: 2px solid rgba(255, 255, 255, 0.8);
-    width: 45px;
-    height: 45px;
+    width: 8vw;
+    height: 8vw;
+    max-width: 45px;
+    max-height: 45px;
     font-size: 14px;
 }
 
 .pizarra-pelota {
     background-color: #fff;
     border: 2px solid #000;
-    width: 22px;
-    height: 22px;
+    width: 4vw;
+    height: 4vw;
+    max-width: 22px;
+    max-height: 22px;
 }
 
-.pizarra-jugador-local:active, .pizarra-jugador-rival:active, .pizarra-pelota:active {
+@media (max-width: 768px) {
+    .pizarra-jugador-local, .pizarra-jugador-rival {
+        width: 10vw;
+        height: 10vw;
+    }
+
+    .pizarra-pelota {
+        width: 5vw;
+        height: 5vw;
+    }
+}
+
+.pizarra-jugador-local:active, .pizarra-jugador-rival:active, .pizarra-pelota:active,
+.pizarra-jugador-local.dragging, .pizarra-jugador-rival.dragging, .pizarra-pelota.dragging {
     cursor: grabbing;
     transform: translate(-50%, -50%) scale(1.1);
     box-shadow: 0 8px 16px rgba(0,0,0,0.4);
@@ -910,4 +929,69 @@ input, select, textarea {
     color: #666;
     cursor: not-allowed;
     transform: none;
+}
+
+/* Estilos para jugadas guardadas */
+#jugadas-guardadas-panel ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 15px;
+}
+
+#jugadas-guardadas-panel li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background: #2a3b4d;
+    border-radius: 8px;
+    margin-bottom: 8px;
+}
+
+#jugadas-guardadas-panel li span {
+    font-weight: 500;
+}
+
+#jugadas-guardadas-panel li div {
+    display: flex;
+    gap: 8px;
+}
+
+#jugadas-guardadas-panel .btn-reproducir,
+#jugadas-guardadas-panel .btn-eliminar {
+    background: #007bff;
+    border: none;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#jugadas-guardadas-panel .btn-eliminar {
+    background: #dc3545;
+}
+
+.campo.recording {
+    box-shadow: 0 0 0 4px #dc3545, 0 0 20px 5px #dc3545;
+    animation: pulse-red 1.5s infinite;
+}
+
+@keyframes pulse-red {
+    0% { box-shadow: 0 0 0 4px #dc3545, 0 0 20px 5px #dc3545; }
+    50% { box-shadow: 0 0 0 4px #ff7b7b, 0 0 30px 10px #ff7b7b; }
+    100% { box-shadow: 0 0 0 4px #dc3545, 0 0 20px 5px #dc3545; }
+}
+
+#anadir-paso-btn.feedback {
+    animation: feedback-pulse 0.3s ease-out;
+}
+
+@keyframes feedback-pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); background-color: #28a745; }
+    100% { transform: scale(1); }
 }
