@@ -51,6 +51,7 @@ export function generarMejorAlineacion() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    initElements();
     const datosIniciales = cargarDatosIniciales();
     inicializarEstado(datosIniciales);
     const { elements, partitSeleccionat } = getState();
