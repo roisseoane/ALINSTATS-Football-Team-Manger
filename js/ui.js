@@ -771,106 +771,84 @@ function makeDraggable(element, container) {
     let isDragging = false;
     let offsetX, offsetY;
 
-    const onMouseDown = (e) => {
+    const onPointerDown = (e) => {
         isDragging = true;
-        // Prevenir el comportamiento de selección de texto
         e.preventDefault();
+        element.setPointerCapture(e.pointerId);
 
-        // Usar e.touches si es un evento táctil
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-        offsetX = clientX - element.getBoundingClientRect().left;
-        offsetY = clientY - element.getBoundingClientRect().top;
+        offsetX = e.clientX - element.getBoundingClientRect().left;
+        offsetY = e.clientY - element.getBoundingClientRect().top;
 
         element.style.cursor = 'grabbing';
         element.style.zIndex = 1000;
-
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-        document.addEventListener('touchmove', onMouseMove);
-        document.addEventListener('touchend', onMouseUp);
     };
 
-    const onMouseMove = (e) => {
+    const onPointerMove = (e) => {
         if (!isDragging) return;
 
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
         const containerRect = container.getBoundingClientRect();
-        let x = clientX - containerRect.left - offsetX;
-        let y = clientY - containerRect.top - offsetY;
+        let x = e.clientX - containerRect.left - offsetX;
+        let y = e.clientY - containerRect.top - offsetY;
 
-        // Confinar el movimiento dentro del contenedor
-        x = Math.max(0, Math.min(x, containerRect.width - element.offsetWidth));
-        y = Math.max(0, Math.min(y, containerRect.height - element.offsetHeight));
+        const elementWidth = element.offsetWidth;
+        const elementHeight = element.offsetHeight;
+
+        x = Math.max(0, Math.min(x, containerRect.width - elementWidth));
+        y = Math.max(0, Math.min(y, containerRect.height - elementHeight));
 
         element.style.left = `${x}px`;
         element.style.top = `${y}px`;
     };
 
-    const onMouseUp = () => {
+    const onPointerUp = (e) => {
         isDragging = false;
+        element.releasePointerCapture(e.pointerId);
         element.style.cursor = 'grab';
         element.style.zIndex = '';
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-        document.removeEventListener('touchmove', onMouseMove);
-        document.removeEventListener('touchend', onMouseUp);
     };
 
-    element.addEventListener('mousedown', onMouseDown);
-    element.addEventListener('touchstart', onMouseDown, { passive: false });
+    element.addEventListener('pointerdown', onPointerDown);
+    element.addEventListener('pointermove', onPointerMove);
+    element.addEventListener('pointerup', onPointerUp);
+    element.addEventListener('pointercancel', onPointerUp);
 }
 
 function renderizarPizarra() {
     const { elements } = getState();
-    elements.overlay.innerHTML = ''; // Limpiar el campo
+    elements.overlay.innerHTML = '';
+    elements.overlay.style.pointerEvents = 'auto';
 
     const crearElemento = (className, text, left, top) => {
         const el = document.createElement('div');
         el.className = className;
         if (text) el.textContent = text;
-        el.style.position = 'absolute';
         el.style.left = left;
         el.style.top = top;
-        el.style.transform = 'translate(-50%, -50%)';
         elements.overlay.appendChild(el);
         makeDraggable(el, elements.campo);
         return el;
     };
 
-    // Posiciones en rombo (1-2-1)
     const formacionLocal = [
-        { left: '50%', top: '85%' }, // Cierre
-        { left: '25%', top: '70%' }, // Ala Izquierdo
-        { left: '75%', top: '70%' }, // Ala Derecho
-        { left: '50%', top: '55%' }  // Pivot
+        { left: '50%', top: '85%' }, { left: '25%', top: '70%' },
+        { left: '75%', top: '70%' }, { left: '50%', top: '55%' }
     ];
-
     const formacionRival = [
-        { left: '50%', top: '15%' }, // Cierre
-        { left: '25%', top: '30%' }, // Ala Izquierdo
-        { left: '75%', top: '30%' }, // Ala Derecho
-        { left: '50%', top: '45%' }  // Pivot
+        { left: '50%', top: '15%' }, { left: '25%', top: '30%' },
+        { left: '75%', top: '30%' }, { left: '50%', top: '45%' }
     ];
 
-    // Renderizar jugadores locales
-    crearElemento('ficha-jugador', 'POR', '50%', '95%');
+    crearElemento('pizarra-jugador-local', 'P', '50%', '95%');
     formacionLocal.forEach((pos, i) => {
-        crearElemento('ficha-jugador', `LOC ${i + 1}`, pos.left, pos.top);
+        crearElemento('pizarra-jugador-local', `L${i + 1}`, pos.left, pos.top);
     });
 
-
-    // Renderizar rivales
-    crearElemento('ficha-rival', 'POR', '50%', '5%');
+    crearElemento('pizarra-jugador-rival', 'P', '50%', '5%');
     formacionRival.forEach((pos, i) => {
-        crearElemento('ficha-rival', `RIV ${i + 1}`, pos.left, pos.top);
+        crearElemento('pizarra-jugador-rival', `V${i + 1}`, pos.left, pos.top);
     });
 
-    // Renderizar pelota
-    crearElemento('pelota', null, '50%', '50%');
+    crearElemento('pizarra-pelota', '', '50%', '50%');
 }
 
 function reiniciarPosiciones() {
@@ -907,6 +885,7 @@ export function togglePizarraTactical() {
             elements.pizarra.finalizarJugadaBtn.disabled = true;
         });
     } else {
+        elements.overlay.style.pointerEvents = 'none';
         renderizarAlineacion(state.alineacionActual, false);
     }
 }
