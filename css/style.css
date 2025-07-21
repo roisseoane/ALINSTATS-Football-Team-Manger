@@ -96,6 +96,11 @@ footer {
     z-index: 2;
 }
 
+.campo.pizarra-activa .overlay {
+    pointer-events: auto;
+    z-index: 5;
+}
+
 /* Fichas de jugadores */
 .ficha-container {
     position: absolute;
@@ -833,7 +838,7 @@ input, select, textarea {
 
 /* Estilos Pizarra Táctica Mejorados */
 .campo.pizarra-activa svg {
-    filter: brightness(0.9) saturate(0.8);
+    filter: brightness(0.8);
     transition: filter 0.3s ease;
 }
 
@@ -850,27 +855,30 @@ input, select, textarea {
     align-items: center;
     font-weight: bold;
     color: white;
+    pointer-events: all;
 }
 
 .pizarra-jugador-local {
     background-color: #007bff;
-    border: 2px solid #fff;
-    width: 50px;
-    height: 50px;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    width: 45px;
+    height: 45px;
+    font-size: 14px;
 }
 
 .pizarra-jugador-rival {
     background-color: #dc3545;
-    border: 2px solid #fff;
-    width: 50px;
-    height: 50px;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    width: 45px;
+    height: 45px;
+    font-size: 14px;
 }
 
 .pizarra-pelota {
-    background-color: #ffffff;
+    background-color: #fff;
     border: 2px solid #000;
-    width: 25px;
-    height: 25px;
+    width: 22px;
+    height: 22px;
 }
 
 .pizarra-jugador-local:active, .pizarra-jugador-rival:active, .pizarra-pelota:active {
@@ -885,9 +893,14 @@ input, select, textarea {
     border-radius: 8px;
     padding: 10px 15px;
     transition: background-color 0.2s, transform 0.2s;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
-.pizarra-buttons .nav-btn:hover {
+.pizarra-buttons .nav-btn:hover:not(:disabled) {
     background-color: #007bff;
     transform: translateY(-2px);
 }
@@ -897,8 +910,4 @@ input, select, textarea {
     color: #666;
     cursor: not-allowed;
     transform: none;
-}
-
-.pizarra-buttons .nav-btn i {
-    margin-right: 8px;
 }
