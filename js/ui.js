@@ -46,9 +46,11 @@ export function renderizarCarrusel() {
     });
 }
 
-export function renderizarAlineacion(alin) {
+export function renderizarAlineacion(alin, isPizarraMode = false) {
     const { elements, plantilla, inicialesPosicion, coordenadasPosiciones } = getState();
-    elements.overlay.innerHTML = '';
+    if (!isPizarraMode) {
+        elements.overlay.innerHTML = '';
+    }
     for (const pos in alin) {
         const idTitular = alin[pos].titular;
         if (!idTitular) continue;
@@ -75,13 +77,13 @@ export function renderizarAlineacion(alin) {
 
         posEl.textContent = inicialesPos;
         fichaEl.textContent = jugadorTitular ? jugadorTitular.nombreMostrado : '';
-        if (nombresSuplentes) {
+        if (nombresSuplentes && !isPizarraMode) {
             suplentesEl.textContent = nombresSuplentes;
         }
 
         cont.appendChild(posEl);
         cont.appendChild(fichaEl);
-        if (nombresSuplentes) {
+        if (nombresSuplentes && !isPizarraMode) {
             cont.appendChild(suplentesEl);
         }
 
@@ -90,6 +92,10 @@ export function renderizarAlineacion(alin) {
 
         elements.overlay.appendChild(cont);
         setTimeout(() => cont.classList.add('visible'), 50);
+
+        if (isPizarraMode) {
+            makeDraggable(cont, elements.campo);
+        }
     }
 }
 
@@ -761,10 +767,102 @@ export function calcularMvpFlow(stats) {
     return Math.max(1.0, Math.min(puntos, 10.0));
 }
 
+function makeDraggable(element, container) {
+    let isDragging = false;
+    let offsetX, offsetY;
+
+    element.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        offsetX = e.clientX - element.getBoundingClientRect().left;
+        offsetY = e.clientY - element.getBoundingClientRect().top;
+        element.style.cursor = 'grabbing';
+        element.style.zIndex = 1000;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+
+        const containerRect = container.getBoundingClientRect();
+        let x = e.clientX - containerRect.left - offsetX;
+        let y = e.clientY - containerRect.top - offsetY;
+
+        x = Math.max(0, Math.min(x, containerRect.width - element.offsetWidth));
+        y = Math.max(0, Math.min(y, containerRect.height - element.offsetHeight));
+
+        element.style.left = `${x}px`;
+        element.style.top = `${y}px`;
+    });
+
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+        element.style.cursor = 'grab';
+        element.style.zIndex = '';
+    });
+}
+
+function renderizarPizarra() {
+    const { elements, alineacionActual } = getState();
+    elements.overlay.innerHTML = ''; // Limpiar el campo
+
+    // Renderizar jugadores locales
+    renderizarAlineacion(alineacionActual, true);
+
+    // Renderizar rivales
+    for (let i = 0; i < 5; i++) {
+        const rivalEl = document.createElement('div');
+        rivalEl.className = 'ficha-rival';
+        rivalEl.textContent = 'Rival';
+        rivalEl.style.position = 'absolute';
+        rivalEl.style.left = `${(i + 1) * 15}%`;
+        rivalEl.style.top = '30%';
+        elements.overlay.appendChild(rivalEl);
+        makeDraggable(rivalEl, elements.campo);
+    }
+
+    // Renderizar pelota
+    const pelotaEl = document.createElement('div');
+    pelotaEl.className = 'pelota';
+    pelotaEl.style.position = 'absolute';
+    pelotaEl.style.left = '50%';
+    pelotaEl.style.top = '50%';
+    elements.overlay.appendChild(pelotaEl);
+    makeDraggable(pelotaEl, elements.campo);
+}
+
+function reiniciarPosiciones() {
+    renderizarPizarra();
+}
+
 export function togglePizarraTactical() {
     const { elements } = getState();
     const state = getState();
     state.isPizarraTacticalMode = !state.isPizarraTacticalMode;
     elements.campo.classList.toggle('pizarra-activa', state.isPizarraTacticalMode);
     elements.togglePizarraBtn.textContent = state.isPizarraTacticalMode ? 'Modo Pizarra: ON' : 'Pizarra Táctica';
+
+    const carruselContainer = document.querySelector('.carrusel-container');
+    if (carruselContainer) {
+        carruselContainer.style.display = state.isPizarraTacticalMode ? 'none' : 'block';
+    }
+
+    if (elements.pizarra.controlsContainer) {
+        elements.pizarra.controlsContainer.style.display = state.isPizarraTacticalMode ? 'block' : 'none';
+    }
+
+    if (state.isPizarraTacticalMode) {
+        renderizarPizarra();
+        elements.pizarra.reiniciarPosicionesBtn.addEventListener('click', reiniciarPosiciones);
+        elements.pizarra.iniciarGrabacionBtn.addEventListener('click', () => {
+            elements.pizarra.iniciarGrabacionBtn.disabled = true;
+            elements.pizarra.anadirPasoBtn.disabled = false;
+            elements.pizarra.finalizarJugadaBtn.disabled = false;
+        });
+        elements.pizarra.finalizarJugadaBtn.addEventListener('click', () => {
+            elements.pizarra.iniciarGrabacionBtn.disabled = false;
+            elements.pizarra.anadirPasoBtn.disabled = true;
+            elements.pizarra.finalizarJugadaBtn.disabled = true;
+        });
+    } else {
+        renderizarAlineacion(state.alineacionActual, false);
+    }
 }

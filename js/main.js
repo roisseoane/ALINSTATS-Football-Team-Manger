@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial render
     renderizarCarrusel();
-    renderizarAlineacion(generarMejorAlineacion());
+    renderizarAlineacion(generarMejorAlineacion(), false);
     activarTab('alineacio');
     actualizarSelectorPartits(partitSeleccionat);
     actualizarSelectorClips();
