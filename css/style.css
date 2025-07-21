@@ -52,18 +52,15 @@ footer {
 /* Campo y Overlay */
 .campo-container {
     width: 100%;
-    height: 100%;
-    max-width: 100%;
+    height: 100vh; /* Ocupa toda la altura de la ventana */
     position: relative;
     margin: 0 auto;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    overflow: hidden; /* Asegura que los elementos absolutos no se salgan */
 }
 
 /* Estilos para los nuevos botones de las barras laterales */
 .sidebar-toggle-btn {
-    position: fixed;
+    position: absolute; /* Cambiado de fixed a absolute */
     top: 15px;
     z-index: 1001; /* Encima de todo excepto los modales */
     background-color: rgba(0, 170, 255, 0.9);
@@ -96,7 +93,7 @@ footer {
 
 /* Estilos para las barras laterales */
 .sidebar {
-    position: fixed;
+    position: absolute; /* Cambiado de fixed a absolute */
     top: 0;
     height: 100%;
     width: 280px;
@@ -121,7 +118,7 @@ footer {
     transform: translateX(100%);
 }
 
-.sidebar.visible {
+.sidebar.is-visible {
     transform: translateX(0);
 }
 

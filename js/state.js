@@ -176,7 +176,7 @@ export function initElements() {
     state.elements.overlay = document.getElementById('overlay-fichas');
     state.elements.carrusel = document.getElementById('carrusel-convocatoria');
     state.elements.campo = document.getElementById('campo-juego');
-    state.elements.togglePizarraBtn = document.getElementById('toggle-pizarra-btn');
+    state.elements.togglePizarraBtn = document.getElementById('mode-toggle-btn');
     state.elements.modal.backdrop = document.getElementById('modal-backdrop');
     state.elements.modal.popup = document.getElementById('modal-popup');
     state.elements.modal.content = document.getElementById('modal-content');
