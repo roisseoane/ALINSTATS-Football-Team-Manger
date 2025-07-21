@@ -771,12 +771,14 @@ function makeDraggable(element, container) {
         isDragging = true;
         element.style.cursor = 'grabbing';
         element.style.zIndex = 11;
+        element.classList.add('dragging'); // Feedback visual
         e.preventDefault();
         element.setPointerCapture(e.pointerId);
 
         const rect = element.getBoundingClientRect();
         const containerRect = container.getBoundingClientRect();
 
+        // La magia: calcular el offset relativo al contenedor, no a la ventana
         offsetX = e.clientX - rect.left;
         offsetY = e.clientY - rect.top;
     };
@@ -785,12 +787,18 @@ function makeDraggable(element, container) {
         if (!isDragging) return;
 
         const containerRect = container.getBoundingClientRect();
-        let x = e.clientX - containerRect.left - offsetX;
-        let y = e.clientY - containerRect.top - offsetY;
+        // La posición del ratón relativa al contenedor
+        const mouseX = e.clientX - containerRect.left;
+        const mouseY = e.clientY - containerRect.top;
+
+        // Nueva posición del elemento es la del ratón menos el offset inicial
+        let x = mouseX - offsetX;
+        let y = mouseY - offsetY;
 
         const elementWidth = element.offsetWidth;
         const elementHeight = element.offsetHeight;
 
+        // Asegurarse que la pieza no salga del contenedor
         x = Math.max(0, Math.min(x, containerRect.width - elementWidth));
         y = Math.max(0, Math.min(y, containerRect.height - elementHeight));
 
@@ -816,8 +824,9 @@ function renderizarPizarra() {
     elements.overlay.innerHTML = '';
     elements.overlay.style.pointerEvents = 'auto';
 
-    const crearElemento = (className, text, left, top) => {
+    const crearElemento = (id, className, text, left, top) => {
         const el = document.createElement('div');
+        el.id = id;
         el.className = className;
         if (text) el.textContent = text;
         el.style.left = left;
@@ -836,21 +845,163 @@ function renderizarPizarra() {
         { left: '75%', top: '30%' }, { left: '50%', top: '45%' }
     ];
 
-    crearElemento('pizarra-jugador-local', 'P', '50%', '95%');
+    crearElemento('local-p', 'pizarra-jugador-local', '', '50%', '95%');
     formacionLocal.forEach((pos, i) => {
-        crearElemento('pizarra-jugador-local', `L${i + 1}`, pos.left, pos.top);
+        crearElemento(`local-${i + 1}`, 'pizarra-jugador-local', '', pos.left, pos.top);
     });
 
-    crearElemento('pizarra-jugador-rival', 'P', '50%', '5%');
+    crearElemento('rival-p', 'pizarra-jugador-rival', '', '50%', '5%');
     formacionRival.forEach((pos, i) => {
-        crearElemento('pizarra-jugador-rival', `V${i + 1}`, pos.left, pos.top);
+        crearElemento(`rival-${i + 1}`, 'pizarra-jugador-rival', '', pos.left, pos.top);
     });
 
-    crearElemento('pizarra-pelota', '', '50%', '50%');
+    crearElemento('pelota', 'pizarra-pelota', '', '50%', '50%');
 }
 
 function reiniciarPosiciones() {
     renderizarPizarra();
+}
+
+let isRecording = false;
+let jugadaActual = [];
+let timeoutsAnimacion = [];
+
+function setupPizarraEventListeners() {
+    const { elements } = getState();
+
+    document.getElementById('reiniciar-posiciones-btn').addEventListener('click', reiniciarPosiciones);
+    document.getElementById('iniciar-grabacion-btn').addEventListener('click', iniciarGrabacion);
+    document.getElementById('anadir-paso-btn').addEventListener('click', anadirPaso);
+    document.getElementById('finalizar-jugada-btn').addEventListener('click', finalizarGrabacion);
+}
+
+function iniciarGrabacion() {
+    isRecording = true;
+    jugadaActual = [];
+    document.getElementById('iniciar-grabacion-btn').disabled = true;
+    document.getElementById('anadir-paso-btn').disabled = false;
+    document.getElementById('finalizar-jugada-btn').disabled = false;
+    getState().elements.campo.classList.add('recording');
+    anadirPaso(); // Guardar el estado inicial
+}
+
+function anadirPaso() {
+    if (!isRecording) return;
+    const { elements } = getState();
+    const paso = [];
+    const fichas = elements.overlay.querySelectorAll('.pizarra-jugador-local, .pizarra-jugador-rival, .pizarra-pelota');
+    fichas.forEach((ficha, index) => {
+        paso.push({
+            id: ficha.id || `ficha-${index}`, // Asegurar que cada ficha tenga un ID
+            left: ficha.style.left,
+            top: ficha.style.top
+        });
+    });
+    jugadaActual.push(paso);
+
+    const anadirPasoBtn = document.getElementById('anadir-paso-btn');
+    anadirPasoBtn.classList.add('feedback');
+    setTimeout(() => anadirPasoBtn.classList.remove('feedback'), 300);
+}
+
+function finalizarGrabacion() {
+    isRecording = false;
+    getState().elements.campo.classList.remove('recording');
+    document.getElementById('iniciar-grabacion-btn').disabled = false;
+    document.getElementById('anadir-paso-btn').disabled = true;
+    document.getElementById('finalizar-jugada-btn').disabled = true;
+
+    if (jugadaActual.length > 1) {
+        const nombreJugada = prompt("Introdueix un nom per a la jugada:", "Nova Jugada");
+        if (nombreJugada) {
+            guardarJugada(nombreJugada, jugadaActual);
+            renderizarJugadasGuardadas();
+        }
+    }
+    jugadaActual = [];
+}
+
+function guardarJugada(nombre, jugada) {
+    const jugadasGuardadas = JSON.parse(localStorage.getItem('jugadasPizarra') || '[]');
+    jugadasGuardadas.push({ id: Date.now(), nombre, jugada });
+    localStorage.setItem('jugadasPizarra', JSON.stringify(jugadasGuardadas));
+}
+
+function renderizarJugadasGuardadas() {
+    const panel = document.getElementById('jugadas-guardadas-panel');
+    const jugadasGuardadas = JSON.parse(localStorage.getItem('jugadasPizarra') || '[]');
+
+    let html = '<h3>Jugadas Guardadas</h3>';
+    if (jugadasGuardadas.length === 0) {
+        html += '<p>No hi ha jugades guardades.</p>';
+    } else {
+        html += '<ul>';
+        jugadasGuardadas.forEach(jugada => {
+            html += `
+                <li>
+                    <span>${jugada.nombre}</span>
+                    <div>
+                        <button class="btn-reproducir" data-id="${jugada.id}"><i class="fas fa-play"></i></button>
+                        <button class="btn-eliminar" data-id="${jugada.id}"><i class="fas fa-trash"></i></button>
+                    </div>
+                </li>`;
+        });
+        html += '</ul>';
+    }
+    panel.innerHTML = html;
+
+    panel.querySelectorAll('.btn-reproducir').forEach(btn => {
+        btn.addEventListener('click', () => reproducirJugada(btn.dataset.id));
+    });
+    panel.querySelectorAll('.btn-eliminar').forEach(btn => {
+        btn.addEventListener('click', () => eliminarJugada(btn.dataset.id));
+    });
+}
+
+function reproducirJugada(id) {
+    const jugadasGuardadas = JSON.parse(localStorage.getItem('jugadasPizarra') || '[]');
+    const jugadaData = jugadasGuardadas.find(j => j.id == id);
+    if (!jugadaData) return;
+
+    const { elements } = getState();
+    const fichas = elements.overlay.querySelectorAll('.pizarra-jugador-local, .pizarra-jugador-rival, .pizarra-pelota');
+
+    // Limpiar animaciones anteriores
+    timeoutsAnimacion.forEach(timeout => clearTimeout(timeout));
+    timeoutsAnimacion = [];
+
+    let pasoIndex = 0;
+    function animarPaso() {
+        if (pasoIndex >= jugadaData.jugada.length) {
+            // Restaurar la interactividad
+            fichas.forEach(ficha => ficha.style.pointerEvents = 'auto');
+            return;
+        }
+
+        const pasoActual = jugadaData.jugada[pasoIndex];
+        pasoActual.forEach(pos => {
+            const ficha = document.getElementById(pos.id);
+            if (ficha) {
+                ficha.style.transition = 'left 0.5s ease-in-out, top 0.5s ease-in-out';
+                ficha.style.left = pos.left;
+                ficha.style.top = pos.top;
+                ficha.style.pointerEvents = 'none'; // Desactivar drag durante la animación
+            }
+        });
+
+        pasoIndex++;
+        timeoutsAnimacion.push(setTimeout(animarPaso, 1500)); // 1.5s entre pasos
+    }
+
+    animarPaso();
+}
+
+function eliminarJugada(id) {
+    if (!confirm('Estàs segur que vols eliminar aquesta jugada?')) return;
+    let jugadasGuardadas = JSON.parse(localStorage.getItem('jugadasPizarra') || '[]');
+    jugadasGuardadas = jugadasGuardadas.filter(j => j.id != id);
+    localStorage.setItem('jugadasPizarra', JSON.stringify(jugadasGuardadas));
+    renderizarJugadasGuardadas();
 }
 
 export function togglePizarraTactical() {
@@ -865,25 +1016,18 @@ export function togglePizarraTactical() {
         carruselContainer.style.display = state.isPizarraTacticalMode ? 'none' : 'block';
     }
 
-    if (elements.pizarra.controlsContainer) {
-        elements.pizarra.controlsContainer.style.display = state.isPizarraTacticalMode ? 'block' : 'none';
+    const pizarraControls = document.getElementById('pizarra-controls-container');
+    if (pizarraControls) {
+        pizarraControls.style.display = state.isPizarraTacticalMode ? 'block' : 'none';
     }
 
     if (state.isPizarraTacticalMode) {
         renderizarPizarra();
-        elements.pizarra.reiniciarPosicionesBtn.addEventListener('click', reiniciarPosiciones);
-        elements.pizarra.iniciarGrabacionBtn.addEventListener('click', () => {
-            elements.pizarra.iniciarGrabacionBtn.disabled = true;
-            elements.pizarra.anadirPasoBtn.disabled = false;
-            elements.pizarra.finalizarJugadaBtn.disabled = false;
-        });
-        elements.pizarra.finalizarJugadaBtn.addEventListener('click', () => {
-            elements.pizarra.iniciarGrabacionBtn.disabled = false;
-            elements.pizarra.anadirPasoBtn.disabled = true;
-            elements.pizarra.finalizarJugadaBtn.disabled = true;
-        });
+        setupPizarraEventListeners();
+        renderizarJugadasGuardadas();
     } else {
         elements.overlay.style.pointerEvents = 'none';
         renderizarAlineacion(state.alineacionActual, false);
+        elements.campo.classList.remove('recording');
     }
 }
