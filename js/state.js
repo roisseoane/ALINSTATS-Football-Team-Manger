@@ -50,6 +50,15 @@ const state = {
             btnEstadistiques: null,
             btnAlineacio: null,
             btnClips: null
+        },
+        pizarra: {
+            controlsContainer: null,
+            creacionJugadaPanel: null,
+            jugadasGuardadasPanel: null,
+            reiniciarPosicionesBtn: null,
+            iniciarGrabacionBtn: null,
+            anadirPasoBtn: null,
+            finalizarJugadaBtn: null
         }
     }
 };
@@ -98,7 +107,7 @@ export function setJugadoresDisponibles(jugadores) {
     const alineacion = generarMejorAlineacion();
     setAlineacionActual(alineacion);
     renderizarCarrusel();
-    renderizarAlineacion(alineacion);
+    renderizarAlineacion(alineacion, false);
 }
 
 export function toggleJugadorDisponible(jugadorId) {
@@ -112,7 +121,7 @@ export function toggleJugadorDisponible(jugadorId) {
     const alineacion = generarMejorAlineacion();
     setAlineacionActual(alineacion);
     renderizarCarrusel();
-    renderizarAlineacion(alineacion);
+    renderizarAlineacion(alineacion, false);
 }
 
 export function setPartitSeleccionat(partidoId) {
@@ -175,4 +184,11 @@ export function initElements() {
     state.elements.nav.btnEstadistiques = document.getElementById('btn-estadistiques');
     state.elements.nav.btnAlineacio = document.getElementById('btn-alineacio');
     state.elements.nav.btnClips = document.getElementById('btn-clips');
+    state.elements.pizarra.controlsContainer = document.getElementById('pizarra-controls-container');
+    state.elements.pizarra.creacionJugadaPanel = document.getElementById('creacion-jugada-panel');
+    state.elements.pizarra.jugadasGuardadasPanel = document.getElementById('jugadas-guardadas-panel');
+    state.elements.pizarra.reiniciarPosicionesBtn = document.getElementById('reiniciar-posiciones-btn');
+    state.elements.pizarra.iniciarGrabacionBtn = document.getElementById('iniciar-grabacion-btn');
+    state.elements.pizarra.anadirPasoBtn = document.getElementById('anadir-paso-btn');
+    state.elements.pizarra.finalizarJugadaBtn = document.getElementById('finalizar-jugada-btn');
 }
