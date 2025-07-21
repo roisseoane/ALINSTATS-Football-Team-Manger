@@ -13,44 +13,44 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
 </head>
 <body>
+    <!-- Botón para abrir la barra lateral de jugadores -->
+    <button id="btn-toggle-equip" class="sidebar-toggle-btn left">
+        <i class="fas fa-users"></i>
+    </button>
+
+    <!-- Barra lateral de Jugadores (Modo Equip) -->
+    <div id="sidebar-equip" class="sidebar left">
+        <h2>Jugadors Disponibles</h2>
+        <div class="carrusel" id="carrusel-convocatoria"></div>
+    </div>
+
+    <!-- Botón para abrir la barra lateral de opciones de la pizarra -->
+    <button id="btn-toggle-pissarra" class="sidebar-toggle-btn right" style="display: none;">
+        <i class="fas fa-cog"></i>
+    </button>
+
+    <!-- Barra lateral de Opciones (Modo Pissarra) -->
+    <div id="sidebar-pissarra" class="sidebar right">
+        <div id="pizarra-controls-container">
+            <div id="creacion-jugada-panel">
+                <h3>Creación de Jugada</h3>
+                <div class="pizarra-buttons">
+                    <button id="reiniciar-posiciones-btn" class="nav-btn"><i class="fas fa-undo"></i>Reiniciar</button>
+                    <button id="iniciar-grabacion-btn" class="nav-btn"><i class="fas fa-play-circle"></i>Grabar</button>
+                    <button id="anadir-paso-btn" class="nav-btn" disabled><i class="fas fa-plus"></i>Añadir Paso</button>
+                    <button id="finalizar-jugada-btn" class="nav-btn" disabled><i class="fas fa-save"></i>Finalizar</button>
+                </div>
+            </div>
+            <div id="jugadas-guardadas-panel">
+                <h3>Jugadas Guardadas</h3>
+            </div>
+        </div>
+    </div>
+
     <main>
         <section id="section-alineacio">
             <div class="campo-container">
-                <!-- Botón para abrir la barra lateral de jugadores -->
-                <button id="btn-toggle-equip" class="sidebar-toggle-btn left">
-                    <i class="fas fa-users"></i>
-                </button>
-
-                <!-- Barra lateral de Jugadores (Modo Equip) -->
-                <div id="sidebar-equip" class="sidebar left">
-                    <h2>Jugadors Disponibles</h2>
-                    <div class="carrusel" id="carrusel-convocatoria"></div>
-                </div>
-
-                <!-- Botón para abrir la barra lateral de opciones de la pizarra -->
-                <button id="btn-toggle-pissarra" class="sidebar-toggle-btn right" style="display: none;">
-                    <i class="fas fa-cog"></i>
-                </button>
-
-                <!-- Barra lateral de Opciones (Modo Pissarra) -->
-                <div id="sidebar-pissarra" class="sidebar right">
-                    <div id="pizarra-controls-container">
-                        <div id="creacion-jugada-panel">
-                            <h3>Creación de Jugada</h3>
-                            <div class="pizarra-buttons">
-                                <button id="reiniciar-posiciones-btn" class="nav-btn"><i class="fas fa-undo"></i>Reiniciar</button>
-                                <button id="iniciar-grabacion-btn" class="nav-btn"><i class="fas fa-play-circle"></i>Grabar</button>
-                                <button id="anadir-paso-btn" class="nav-btn" disabled><i class="fas fa-plus"></i>Añadir Paso</button>
-                                <button id="finalizar-jugada-btn" class="nav-btn" disabled><i class="fas fa-save"></i>Finalizar</button>
-                            </div>
-                        </div>
-                        <div id="jugadas-guardadas-panel">
-                            <h3>Jugadas Guardadas</h3>
-                        </div>
-                    </div>
-                </div>
-
-                <button id="mode-toggle-btn" class="pizarra-toggle-btn">Pissarra Tàctica</button>
+                <button id="toggle-pizarra-btn" class="pizarra-toggle-btn">Pizarra Táctica</button>
                 <div class="campo" id="campo-juego">
                     <svg viewBox="0 0 500 800" xmlns="http://www.w3.org/2000/svg">
                         <rect x="10" y="10" width="480" height="780" stroke="#fff" stroke-width="4" fill="#a0c4ff" />
