@@ -78,7 +78,10 @@ const state = {
 // Export the state object for read-only access
 export const getState = () => state;
 
-export function inicializarEstado(datos) {
+import { cargarDatosIniciales } from './api.js';
+
+export function inicializarEstado() {
+    const datos = cargarDatosIniciales();
     state.plantilla = datos.plantilla;
     state.habilidadPorPosicion = datos.habilidadPorPosicion;
     state.estadisticasJugadores = datos.estadisticasJugadores;
@@ -86,6 +89,7 @@ export function inicializarEstado(datos) {
     state.coordenadasPosiciones = datos.coordenadasPosiciones;
     state.partidos = datos.partidos || [];
     state.partitSeleccionat = datos.partitSeleccionat || 'global';
+    state.jugadoresDisponibles = state.plantilla.map(j => j.id);
 }
 
 // MUTATOR FUNCTIONS
@@ -206,4 +210,3 @@ export function initElements() {
     state.elements.pizarra.finalizarJugadaBtn = document.getElementById('finalizar-jugada-btn');
 }
 
-document.addEventListener('DOMContentLoaded', initElements);

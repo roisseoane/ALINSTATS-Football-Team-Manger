@@ -1005,29 +1005,28 @@ function eliminarJugada(id) {
 }
 
 export function togglePizarraTactical() {
-    const { elements, isPizarraTacticalMode, alineacionActual } = getState();
     const state = getState();
-    state.isPizarraTacticalMode = !isPizarraTacticalMode;
+    state.isPizarraTacticalMode = !state.isPizarraTacticalMode;
 
-    elements.campo.classList.toggle('pizarra-activa', state.isPizarraTacticalMode);
+    const { elements, isPizarraTacticalMode, alineacionActual } = state;
 
-    // El botón principal ahora cambia el texto en lugar de desaparecer
-    const modeToggleButton = document.getElementById('mode-toggle-btn');
-    if (modeToggleButton) {
-        modeToggleButton.textContent = state.isPizarraTacticalMode ? 'Modo Equip' : 'Pissarra Tàctica';
-    }
+    elements.campo.classList.toggle('pizarra-activa', isPizarraTacticalMode);
+    elements.togglePizarraBtn.textContent = isPizarraTacticalMode ? 'Modo Equip' : 'Pissarra Tàctica';
 
-    // Gestionar la visibilidad de los nuevos botones y barras laterales
-    const equipVisible = !state.isPizarraTacticalMode;
-    const pissarraVisible = state.isPizarraTacticalMode;
+    const equipVisible = !isPizarraTacticalMode;
+    const pissarraVisible = isPizarraTacticalMode;
 
     elements.nav.btnToggleEquip.style.display = equipVisible ? 'flex' : 'none';
-    elements.sidebars.equip.classList.remove('visible'); // Siempre ocultar al cambiar
+    if (elements.sidebars.equip) {
+        elements.sidebars.equip.classList.remove('is-visible');
+    }
 
     elements.nav.btnTogglePissarra.style.display = pissarraVisible ? 'flex' : 'none';
-    elements.sidebars.pissarra.classList.remove('visible'); // Siempre ocultar al cambiar
+    if (elements.sidebars.pissarra) {
+        elements.sidebars.pissarra.classList.remove('is-visible');
+    }
 
-    if (state.isPizarraTacticalMode) {
+    if (isPizarraTacticalMode) {
         renderizarPizarra();
         setupPizarraEventListeners();
         renderizarJugadasGuardadas();
