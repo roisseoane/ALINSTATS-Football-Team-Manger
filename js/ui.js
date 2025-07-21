@@ -1005,35 +1005,26 @@ function eliminarJugada(id) {
 }
 
 export function togglePizarraTactical() {
-    const { elements, isPizarraTacticalMode, alineacionActual } = getState();
+    const { elements } = getState();
     const state = getState();
-    state.isPizarraTacticalMode = !isPizarraTacticalMode;
-
+    state.isPizarraTacticalMode = !state.isPizarraTacticalMode;
     elements.campo.classList.toggle('pizarra-activa', state.isPizarraTacticalMode);
+    elements.togglePizarraBtn.textContent = state.isPizarraTacticalMode ? 'Modo Pizarra: ON' : 'Pizarra Táctica';
 
-    // El botón principal ahora cambia el texto en lugar de desaparecer
-    const modeToggleButton = document.getElementById('mode-toggle-btn');
-    if (modeToggleButton) {
-        modeToggleButton.textContent = state.isPizarraTacticalMode ? 'Modo Equip' : 'Pissarra Tàctica';
-    }
-
-    // Gestionar la visibilidad de los nuevos botones y barras laterales
-    const equipVisible = !state.isPizarraTacticalMode;
-    const pissarraVisible = state.isPizarraTacticalMode;
-
-    elements.nav.btnToggleEquip.style.display = equipVisible ? 'flex' : 'none';
-    elements.sidebars.equip.classList.remove('visible'); // Siempre ocultar al cambiar
-
-    elements.nav.btnTogglePissarra.style.display = pissarraVisible ? 'flex' : 'none';
-    elements.sidebars.pissarra.classList.remove('visible'); // Siempre ocultar al cambiar
+    // Controla la visibilidad de los botones de las barras laterales
+    elements.nav.btnToggleEquip.style.display = state.isPizarraTacticalMode ? 'none' : 'flex';
+    elements.nav.btnTogglePissarra.style.display = state.isPizarraTacticalMode ? 'flex' : 'none';
 
     if (state.isPizarraTacticalMode) {
         renderizarPizarra();
         setupPizarraEventListeners();
         renderizarJugadasGuardadas();
     } else {
+        // Si salimos del modo pizarra, cerramos las sidebars
+        elements.sidebars.equip.classList.remove('visible');
+        elements.sidebars.pissarra.classList.remove('visible');
         elements.overlay.style.pointerEvents = 'none';
-        renderizarAlineacion(alineacionActual, false);
+        renderizarAlineacion(state.alineacionActual, false);
         elements.campo.classList.remove('recording');
     }
 }
