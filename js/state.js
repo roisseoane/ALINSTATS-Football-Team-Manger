@@ -205,3 +205,5 @@ export function initElements() {
     state.elements.pizarra.anadirPasoBtn = document.getElementById('anadir-paso-btn');
     state.elements.pizarra.finalizarJugadaBtn = document.getElementById('finalizar-jugada-btn');
 }
+
+document.addEventListener('DOMContentLoaded', initElements);
