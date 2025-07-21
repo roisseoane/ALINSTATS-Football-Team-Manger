@@ -92,10 +92,6 @@ export function renderizarAlineacion(alin, isPizarraMode = false) {
 
         elements.overlay.appendChild(cont);
         setTimeout(() => cont.classList.add('visible'), 50);
-
-        if (isPizarraMode) {
-            makeDraggable(cont, elements.campo);
-        }
     }
 }
 
@@ -773,14 +769,16 @@ function makeDraggable(element, container) {
 
     const onPointerDown = (e) => {
         isDragging = true;
+        element.style.cursor = 'grabbing';
+        element.style.zIndex = 11;
         e.preventDefault();
         element.setPointerCapture(e.pointerId);
 
-        offsetX = e.clientX - element.getBoundingClientRect().left;
-        offsetY = e.clientY - element.getBoundingClientRect().top;
+        const rect = element.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
 
-        element.style.cursor = 'grabbing';
-        element.style.zIndex = 1000;
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
     };
 
     const onPointerMove = (e) => {
@@ -802,12 +800,12 @@ function makeDraggable(element, container) {
 
     const onPointerUp = (e) => {
         isDragging = false;
-        element.releasePointerCapture(e.pointerId);
         element.style.cursor = 'grab';
-        element.style.zIndex = '';
+        element.style.zIndex = 10;
+        element.releasePointerCapture(e.pointerId);
     };
 
-    element.addEventListener('pointerdown', onPointerDown);
+    element.addEventListener('pointerdown', onPointerDown, { passive: false });
     element.addEventListener('pointermove', onPointerMove);
     element.addEventListener('pointerup', onPointerUp);
     element.addEventListener('pointercancel', onPointerUp);
