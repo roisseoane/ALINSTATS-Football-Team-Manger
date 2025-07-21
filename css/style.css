@@ -68,9 +68,9 @@ footer {
     display: block;
 }
 
-.campo.pizarra-activa svg rect {
+/* .campo.pizarra-activa svg rect {
     fill: #fff;
-}
+} */
 
 .pizarra-toggle-btn {
     position: absolute;

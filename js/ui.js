@@ -771,62 +771,106 @@ function makeDraggable(element, container) {
     let isDragging = false;
     let offsetX, offsetY;
 
-    element.addEventListener('mousedown', (e) => {
+    const onMouseDown = (e) => {
         isDragging = true;
-        offsetX = e.clientX - element.getBoundingClientRect().left;
-        offsetY = e.clientY - element.getBoundingClientRect().top;
+        // Prevenir el comportamiento de selección de texto
+        e.preventDefault();
+
+        // Usar e.touches si es un evento táctil
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+        offsetX = clientX - element.getBoundingClientRect().left;
+        offsetY = clientY - element.getBoundingClientRect().top;
+
         element.style.cursor = 'grabbing';
         element.style.zIndex = 1000;
-    });
 
-    document.addEventListener('mousemove', (e) => {
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+        document.addEventListener('touchmove', onMouseMove);
+        document.addEventListener('touchend', onMouseUp);
+    };
+
+    const onMouseMove = (e) => {
         if (!isDragging) return;
 
-        const containerRect = container.getBoundingClientRect();
-        let x = e.clientX - containerRect.left - offsetX;
-        let y = e.clientY - containerRect.top - offsetY;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
+        const containerRect = container.getBoundingClientRect();
+        let x = clientX - containerRect.left - offsetX;
+        let y = clientY - containerRect.top - offsetY;
+
+        // Confinar el movimiento dentro del contenedor
         x = Math.max(0, Math.min(x, containerRect.width - element.offsetWidth));
         y = Math.max(0, Math.min(y, containerRect.height - element.offsetHeight));
 
         element.style.left = `${x}px`;
         element.style.top = `${y}px`;
-    });
+    };
 
-    document.addEventListener('mouseup', () => {
+    const onMouseUp = () => {
         isDragging = false;
         element.style.cursor = 'grab';
         element.style.zIndex = '';
-    });
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+        document.removeEventListener('touchmove', onMouseMove);
+        document.removeEventListener('touchend', onMouseUp);
+    };
+
+    element.addEventListener('mousedown', onMouseDown);
+    element.addEventListener('touchstart', onMouseDown, { passive: false });
 }
 
 function renderizarPizarra() {
-    const { elements, alineacionActual } = getState();
+    const { elements } = getState();
     elements.overlay.innerHTML = ''; // Limpiar el campo
 
+    const crearElemento = (className, text, left, top) => {
+        const el = document.createElement('div');
+        el.className = className;
+        if (text) el.textContent = text;
+        el.style.position = 'absolute';
+        el.style.left = left;
+        el.style.top = top;
+        el.style.transform = 'translate(-50%, -50%)';
+        elements.overlay.appendChild(el);
+        makeDraggable(el, elements.campo);
+        return el;
+    };
+
+    // Posiciones en rombo (1-2-1)
+    const formacionLocal = [
+        { left: '50%', top: '85%' }, // Cierre
+        { left: '25%', top: '70%' }, // Ala Izquierdo
+        { left: '75%', top: '70%' }, // Ala Derecho
+        { left: '50%', top: '55%' }  // Pivot
+    ];
+
+    const formacionRival = [
+        { left: '50%', top: '15%' }, // Cierre
+        { left: '25%', top: '30%' }, // Ala Izquierdo
+        { left: '75%', top: '30%' }, // Ala Derecho
+        { left: '50%', top: '45%' }  // Pivot
+    ];
+
     // Renderizar jugadores locales
-    renderizarAlineacion(alineacionActual, true);
+    crearElemento('ficha-jugador', 'POR', '50%', '95%');
+    formacionLocal.forEach((pos, i) => {
+        crearElemento('ficha-jugador', `LOC ${i + 1}`, pos.left, pos.top);
+    });
+
 
     // Renderizar rivales
-    for (let i = 0; i < 5; i++) {
-        const rivalEl = document.createElement('div');
-        rivalEl.className = 'ficha-rival';
-        rivalEl.textContent = 'Rival';
-        rivalEl.style.position = 'absolute';
-        rivalEl.style.left = `${(i + 1) * 15}%`;
-        rivalEl.style.top = '30%';
-        elements.overlay.appendChild(rivalEl);
-        makeDraggable(rivalEl, elements.campo);
-    }
+    crearElemento('ficha-rival', 'POR', '50%', '5%');
+    formacionRival.forEach((pos, i) => {
+        crearElemento('ficha-rival', `RIV ${i + 1}`, pos.left, pos.top);
+    });
 
     // Renderizar pelota
-    const pelotaEl = document.createElement('div');
-    pelotaEl.className = 'pelota';
-    pelotaEl.style.position = 'absolute';
-    pelotaEl.style.left = '50%';
-    pelotaEl.style.top = '50%';
-    elements.overlay.appendChild(pelotaEl);
-    makeDraggable(pelotaEl, elements.campo);
+    crearElemento('pelota', null, '50%', '50%');
 }
 
 function reiniciarPosiciones() {
