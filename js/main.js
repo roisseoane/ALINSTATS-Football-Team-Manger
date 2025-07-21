@@ -109,9 +109,26 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Navigation Event Listeners
-    elements.nav.btnEstadistiques.addEventListener('click', () => activarTab('estadistiques'));
-    elements.nav.btnAlineacio.addEventListener('click', () => activarTab('alineacio'));
-    elements.nav.btnClips.addEventListener('click', () => activarTab('clips'));
+    if (elements.nav.btnToggleEquip) {
+        elements.nav.btnToggleEquip.addEventListener('click', (e) => {
+            e.stopPropagation(); // Evita que el clic se propague al main
+            elements.sidebars.equip.classList.toggle('visible');
+        });
+    }
+
+    // Listener para cerrar la sidebar si se clica fuera
+    document.querySelector('main').addEventListener('click', () => {
+        elements.sidebars.equip.classList.remove('visible');
+        elements.sidebars.pissarra.classList.remove('visible');
+    });
+
+    if (elements.nav.btnTogglePissarra) {
+        elements.nav.btnTogglePissarra.addEventListener('click', (e) => {
+            e.stopPropagation();
+            elements.sidebars.pissarra.classList.toggle('visible');
+        });
+    }
+
     elements.modal.backdrop.addEventListener('click', cerrarModal);
 
     if (elements.togglePizarraBtn) {
