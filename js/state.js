@@ -49,19 +49,7 @@ const state = {
         nav: {
             btnEstadistiques: null,
             btnAlineacio: null,
-            btnClips: null,
-            btnToggleEquip: null
-        },
-        sidebars: {
-            equip: null,
-            pissarra: null
-        },
-        nav: {
-            btnEstadistiques: null,
-            btnAlineacio: null,
-            btnClips: null,
-            btnToggleEquip: null,
-            btnTogglePissarra: null
+            btnClips: null
         },
         pizarra: {
             controlsContainer: null,
@@ -193,10 +181,9 @@ export function initElements() {
     state.elements.clips.selector = document.getElementById('partit-selector-clips');
     state.elements.clips.lista = document.getElementById('clips-lista');
     state.elements.clips.addBtn = document.getElementById('add-clip-btn-main');
-    state.elements.nav.btnToggleEquip = document.getElementById('btn-toggle-equip');
-    state.elements.nav.btnTogglePissarra = document.getElementById('btn-toggle-pissarra');
-    state.elements.sidebars.equip = document.getElementById('sidebar-equip');
-    state.elements.sidebars.pissarra = document.getElementById('sidebar-pissarra');
+    state.elements.nav.btnEstadistiques = document.getElementById('btn-estadistiques');
+    state.elements.nav.btnAlineacio = document.getElementById('btn-alineacio');
+    state.elements.nav.btnClips = document.getElementById('btn-clips');
     state.elements.pizarra.controlsContainer = document.getElementById('pizarra-controls-container');
     state.elements.pizarra.creacionJugadaPanel = document.getElementById('creacion-jugada-panel');
     state.elements.pizarra.jugadasGuardadasPanel = document.getElementById('jugadas-guardadas-panel');

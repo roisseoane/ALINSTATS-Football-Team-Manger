@@ -1011,18 +1011,21 @@ export function togglePizarraTactical() {
     elements.campo.classList.toggle('pizarra-activa', state.isPizarraTacticalMode);
     elements.togglePizarraBtn.textContent = state.isPizarraTacticalMode ? 'Modo Pizarra: ON' : 'Pizarra Táctica';
 
-    // Controla la visibilidad de los botones de las barras laterales
-    elements.nav.btnToggleEquip.style.display = state.isPizarraTacticalMode ? 'none' : 'flex';
-    elements.nav.btnTogglePissarra.style.display = state.isPizarraTacticalMode ? 'flex' : 'none';
+    const carruselContainer = document.querySelector('.carrusel-container');
+    if (carruselContainer) {
+        carruselContainer.style.display = state.isPizarraTacticalMode ? 'none' : 'block';
+    }
+
+    const pizarraControls = document.getElementById('pizarra-controls-container');
+    if (pizarraControls) {
+        pizarraControls.style.display = state.isPizarraTacticalMode ? 'block' : 'none';
+    }
 
     if (state.isPizarraTacticalMode) {
         renderizarPizarra();
         setupPizarraEventListeners();
         renderizarJugadasGuardadas();
     } else {
-        // Si salimos del modo pizarra, cerramos las sidebars
-        elements.sidebars.equip.classList.remove('visible');
-        elements.sidebars.pissarra.classList.remove('visible');
         elements.overlay.style.pointerEvents = 'none';
         renderizarAlineacion(state.alineacionActual, false);
         elements.campo.classList.remove('recording');
