@@ -1,12 +1,11 @@
-// state.js
+// js/state.js - VERSIÓN CORREGIDA
 
-// Imports for rendering, will be properly organized later
 import { renderizarCarrusel, renderizarAlineacion, renderizarEstadistiques, renderizarClips, actualizarSelectorPartits, actualizarSelectorClips } from './ui.js';
-import { generarMejorAlineacion } from './main.js';
-import { guardarDatos } from './api.js';
-
+import { guardarDatosEnSupabase } from './api.js';
+import { generarMejorAlineacion } from './core.js'; // <-- CAMBIO CLAVE: Importa desde core.js
 
 const state = {
+    teamId: null,
     partidos: [],
     jugadoresDisponibles: [],
     partitSeleccionat: 'global',
@@ -26,7 +25,8 @@ const state = {
             backdrop: null,
             popup: null,
             content: null,
-            closeBtn: null
+            closeBtn: null,
+            teamIdModal: null,
         },
         sections: {
             alineacio: null,
@@ -63,10 +63,10 @@ const state = {
     }
 };
 
-// Export the state object for read-only access
 export const getState = () => state;
 
 export function inicializarEstado(datos) {
+    state.teamId = datos.teamId;
     state.plantilla = datos.plantilla;
     state.habilidadPorPosicion = datos.habilidadPorPosicion;
     state.estadisticasJugadores = datos.estadisticasJugadores;
@@ -74,12 +74,13 @@ export function inicializarEstado(datos) {
     state.coordenadasPosiciones = datos.coordenadasPosiciones;
     state.partidos = datos.partidos || [];
     state.partitSeleccionat = datos.partitSeleccionat || 'global';
+    state.jugadoresDisponibles = state.plantilla.map(j => j.id); // Seleccionar todos por defecto
 }
 
 // MUTATOR FUNCTIONS
 export function setPartidos(partidos) {
     state.partidos = partidos;
-    guardarDatos();
+    guardarDatosEnSupabase();
     actualizarSelectorPartits();
     actualizarSelectorClips();
     renderizarEstadistiques();
@@ -87,27 +88,23 @@ export function setPartidos(partidos) {
 
 export function addPartido(partido) {
     state.partidos.push(partido);
-    guardarDatos();
+    guardarDatosEnSupabase();
     actualizarSelectorPartits(partido.id);
-    // Maybe trigger render functions
 }
 
 export function updatePartido(partidoToUpdate) {
     const index = state.partidos.findIndex(p => p.id === partidoToUpdate.id);
     if (index !== -1) {
         state.partidos[index] = partidoToUpdate;
-        guardarDatos();
+        guardarDatosEnSupabase();
         renderizarEstadistiques();
     }
 }
 
-
 export function setJugadoresDisponibles(jugadores) {
     state.jugadoresDisponibles = jugadores;
-    const alineacion = generarMejorAlineacion();
-    setAlineacionActual(alineacion);
+    renderizarAlineacion();
     renderizarCarrusel();
-    renderizarAlineacion(alineacion, false);
 }
 
 export function toggleJugadorDisponible(jugadorId) {
@@ -118,24 +115,22 @@ export function toggleJugadorDisponible(jugadorId) {
     } else {
         jugadores.push(jugadorId);
     }
-    const alineacion = generarMejorAlineacion();
-    setAlineacionActual(alineacion);
     renderizarCarrusel();
-    renderizarAlineacion(alineacion, false);
+    renderizarAlineacion();
 }
 
 export function setPartitSeleccionat(partidoId) {
     state.partitSeleccionat = partidoId;
-    guardarDatos();
+    guardarDatosEnSupabase();
     renderizarEstadistiques();
-    const selectedPartit = state.partidos.find(p => p.id == partidoId);
-    state.elements.stats.editBtn.style.display = selectedPartit && partidoId !== 'global' ? 'block' : 'none';
-
+    if (state.elements.stats.editBtn) {
+        const selectedPartit = state.partidos.find(p => p.id == partidoId);
+        state.elements.stats.editBtn.style.display = selectedPartit && partidoId !== 'global' ? 'flex' : 'none';
+    }
 }
 
 export function setAlineacionActual(alineacion) {
     state.alineacionActual = alineacion;
-    renderizarAlineacion(alineacion);
 }
 
 export function addClipToPartido(partidoId, clip) {
@@ -145,7 +140,7 @@ export function addClipToPartido(partidoId, clip) {
             partido.clips = [];
         }
         partido.clips.push(clip);
-        guardarDatos();
+        guardarDatosEnSupabase();
         renderizarClips();
     }
 }
@@ -154,11 +149,10 @@ export function deleteClipFromPartido(partidoId, clipId) {
     const partido = state.partidos.find(p => p.id == partidoId);
     if (partido && partido.clips) {
         partido.clips = partido.clips.filter(c => c.id !== clipId);
-        guardarDatos();
+        guardarDatosEnSupabase();
         renderizarClips();
     }
 }
-
 
 export function initElements() {
     state.elements.overlay = document.getElementById('overlay-fichas');
@@ -169,6 +163,7 @@ export function initElements() {
     state.elements.modal.popup = document.getElementById('modal-popup');
     state.elements.modal.content = document.getElementById('modal-content');
     state.elements.modal.closeBtn = document.getElementById('modal-close-btn');
+    state.elements.modal.teamIdModal = document.getElementById('team-id-modal');
     state.elements.sections.alineacio = document.getElementById('section-alineacio');
     state.elements.sections.estadistiques = document.getElementById('section-estadistiques');
     state.elements.sections.clips = document.getElementById('section-clips');
