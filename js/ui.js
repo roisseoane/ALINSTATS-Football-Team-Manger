@@ -232,8 +232,13 @@ export function mostrarEstadisticas(jugadorId) {
     abrirModal();
 }
 
+// Importa la nueva función que hemos creado y también getState
+import { crearPartidoEnSupabase } from './api.js';
+import { getState, addPartido } from './state.js';
+
+
 export function crearNuevoPartido() {
-    const { elements, partidos } = getState();
+    const { elements } = getState();
     const form = `
         <div class="modal-header">
             <h2><i class="fas fa-plus-circle"></i> Afegir Partit</h2>
@@ -262,25 +267,26 @@ export function crearNuevoPartido() {
     elements.modal.content.innerHTML = form;
     abrirModal();
 
-    document.getElementById('btn-crear-partit').onclick = () => {
+    document.getElementById('btn-crear-partit').onclick = async () => { // Convertimos la función a 'async'
         const nom = document.getElementById('nom-partit').value.trim();
         const resultat = document.getElementById('resultat-partit').value.trim();
+        const { teamId } = getState(); // Obtenemos el ID del equipo desde el estado
 
         if (!nom) {
             alert('Si us plau, introdueix el nom del partit');
             return;
         }
+        
+        // Llamamos a la nueva función de la API para crear el partido en la base de datos
+        const nouPartit = await crearPartidoEnSupabase(nom, resultat, teamId);
 
-        const nouId = partidos.length > 0 ? Math.max(...partidos.map(p => p.id)) + 1 : 1;
-        const nouPartit = {
-            id: nouId,
-            nom: nom,
-            resultat: resultat,
-            estadistiques: {}
-        };
-        addPartido(nouPartit);
-        cerrarModal();
-        setTimeout(() => mostrarEdicionEstadisticasHoja(nouId), 100);
+        if (nouPartit) {
+            // Si el partido se crea con éxito, lo añadimos al estado local de la app
+            addPartido(nouPartit);
+            cerrarModal();
+            // Abrimos la edición de estadísticas para el nuevo partido
+            setTimeout(() => mostrarEdicionEstadisticasHoja(nouPartit.id), 100);
+        }
     };
 
     document.getElementById('btn-cancelar').onclick = cerrarModal;
