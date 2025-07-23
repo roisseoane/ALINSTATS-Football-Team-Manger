@@ -66,25 +66,34 @@ async function handleTeamIdSubmit(event) {
 // Esta función comprueba si ya existe un ID en localStorage al cargar la página
 async function checkTeamIdOnLoad() {
     const teamId = localStorage.getItem('id_usuari_equip');
+    console.log("Iniciando verificación. ID de equipo en localStorage:", teamId);
 
     if (teamId) {
+        console.log("ID encontrado. Intentando cargar datos del equipo desde Supabase...");
         const { data, error } = await supabase
             .from('Equips')
             .select('*')
             .eq('id_usuari_equip', teamId);
 
         if (error || !data || data.length === 0) {
-            // Si hay un error o el ID guardado ya no es válido
+            console.error("Error al verificar el ID o el ID no es válido en Supabase:", error);
             localStorage.removeItem('id_usuari_equip');
             mostrarModalID();
         } else {
-            // El ID es válido, cargamos los datos y la aplicación
+            console.log("ID válido. Cargando datos del equipo...");
             const datosIniciales = await cargarDatosDelEquipo(data[0].id);
-            inicializarEstado(datosIniciales);
-            inicializarUIPrincipal();
+
+            if (datosIniciales) {
+                console.log("Datos del equipo cargados. Inicializando estado y UI principal.");
+                inicializarEstado(datosIniciales);
+                inicializarUIPrincipal();
+            } else {
+                console.error("Fallo al cargar los datos iniciales del equipo. Mostrando modal de ID.");
+                mostrarModalID();
+            }
         }
     } else {
-        // No hay ningún ID guardado, mostramos el modal para que inicie sesión
+        console.log("No se encontró ID de equipo. Mostrando modal de ID.");
         mostrarModalID();
     }
 }
