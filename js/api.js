@@ -123,6 +123,47 @@ export async function cargarDatosDelEquipo(teamId) {
     }
 }
 
+/**
+ * Inserta un nuevo partido en la tabla 'Partits' de la base de datos.
+ * @param {string} nom - El nombre del partido (ej: "Jornada 5 vs Rival").
+ * @param {string} resultat - El resultado del partido (ej: "3-2").
+ * @param {number} teamId - El ID del equipo al que pertenece el partido.
+ * @returns {Promise<object|null>} El objeto del nuevo partido creado o null si hubo un error.
+ */
+export async function crearPartidoEnSupabase(nom, resultat, teamId) {
+    if (!teamId) {
+        console.error("Error: Se intentó crear un partido sin un ID de equipo.");
+        alert("No se pudo crear el partido porque no se encontró el ID del equipo.");
+        return null;
+    }
+
+    try {
+        const { data: nuevoPartido, error } = await supabase
+            .from('Partits')
+            .insert([
+                {
+                    nom_oponent: nom,
+                    resultat: resultat,
+                    id_equip: teamId,
+                    data_partit: new Date() // Usamos la fecha actual por defecto
+                }
+            ])
+            .select() // Importante: .select() hace que Supabase devuelva la fila recién creada
+            .single(); // .single() para que devuelva un objeto, no un array
+
+        if (error) {
+            throw new Error(`Error de Supabase al crear el partido: ${error.message}`);
+        }
+
+        console.log("Partido creado con éxito en Supabase:", nuevoPartido);
+        return nuevoPartido;
+
+    } catch (error) {
+        console.error("Error en la función crearPartidoEnSupabase:", error);
+        alert(`No se pudo crear el partido. Revisa la consola para más detalles.`);
+        return null;
+    }
+}
 
 /**
  * Exporta los datos actuales a un fichero local (backup).
