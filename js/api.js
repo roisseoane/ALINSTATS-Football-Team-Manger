@@ -32,60 +32,95 @@ export async function guardarDatosEnSupabase() {
     }
 }
 
-
 /**
- * Carga los datos iniciales del equipo desde Supabase.
- * Esto incluye la plantilla y los datos de los partidos guardados.
+ * Carga los datos iniciales del equipo desde la base de datos relacional de Supabase.
+ * Esta versión está refactorizada para trabajar con tablas separadas.
  */
 export async function cargarDatosDelEquipo(teamId) {
-    // 1. Cargar los datos base del equipo (que incluye partidos, etc.)
-    const { data: teamData, error: teamError } = await supabase
-        .from('Equips')
-        .select('dades_equip')
-        .eq('id', teamId)
-        .single();
+    try {
+        // PASO 1: Obtener todos los datos en paralelo para mayor eficiencia
+        // Usamos Promise.all para que todas las peticiones a Supabase se hagan simultáneamente
+        const [
+            { data: teamData, error: teamError },
+            { data: plantillaData, error: plantillaError },
+            { data: partidosData, error: partidosError },
+            { data: actuacionesData, error: actuacionesError },
+            { data: habilidadesData, error: habilidadesError },
+            { data: posicionesData, error: posicionesError }
+        ] = await Promise.all([
+            supabase.from('Equips').select('*').eq('id', teamId).single(),
+            supabase.from('Jugadors').select('*').eq('id_equip', teamId),
+            supabase.from('Partits').select('*').eq('id_equip', teamId).order('data_partit', { ascending: true }),
+            // Obtenemos todas las actuaciones de los jugadores del equipo
+            supabase.rpc('get_actuaciones_por_equipo', { p_id_equip: teamId }),
+            supabase.from('HabilitatsJugadorPerPosicio').select('*'),
+            supabase.from('Posicions').select('*')
+        ]);
 
-    if (teamError) {
-        console.error("Error cargando datos del equipo:", teamError);
-        return null;
+        // Manejo de errores: si alguna petición falla, lo notificamos y detenemos la carga
+        if (teamError) throw new Error(`Error cargando el equipo: ${teamError.message}`);
+        if (plantillaError) throw new Error(`Error cargando la plantilla: ${plantillaError.message}`);
+        if (partidosError) throw new Error(`Error cargando los partidos: ${partidosError.message}`);
+        if (actuacionesError) throw new Error(`Error cargando las actuaciones: ${actuacionesError.message}`);
+        if (habilidadesError) throw new Error(`Error cargando las habilidades: ${habilidadesError.message}`);
+        if (posicionesError) throw new Error(`Error cargando las posiciones: ${posicionesError.message}`);
+
+        // PASO 2: "Rehidratar" los datos para que coincidan con la estructura que espera el 'state' de la app
+
+        // Reconstruir el objeto de partidos con sus estadísticas anidadas
+        const partidosRehidratados = partidosData.map(partido => {
+            const estadistiques = {};
+            // Filtramos las actuaciones que pertenecen a este partido en concreto
+            const actuacionesDelPartido = actuacionesData.filter(act => act.id_partit === partido.id);
+            actuacionesDelPartido.forEach(actuacion => {
+                // Asignamos el JSON de 'stats' a cada jugador
+                estadistiques[actuacion.id_jugador] = actuacion.stats;
+            });
+            return {
+                ...partido, // Mantenemos los datos del partido (id, nom_oponent, etc.)
+                estadistiques: estadistiques // Añadimos el objeto de estadísticas reconstruido
+            };
+        });
+
+        // Reconstruir el objeto de habilidades por posición
+        const habilidadPorPosicion = {};
+        habilidadesData.forEach(habilidad => {
+            if (!habilidadPorPosicion[habilidad.nom_posicio]) {
+                habilidadPorPosicion[habilidad.nom_posicio] = [];
+            }
+            habilidadPorPosicion[habilidad.nom_posicio].push(habilidad.id_jugador);
+        });
+
+        // Reconstruir los objetos para las coordenadas e iniciales de las posiciones
+        const inicialesPosicion = {};
+        const coordenadasPosiciones = {};
+        posicionesData.forEach(posicion => {
+            inicialesPosicion[posicion.nom] = posicion.inicials;
+            coordenadasPosiciones[posicion.nom] = posicion.coordenades;
+        });
+
+        // PASO 3: Devolver el objeto de estado completo y listo para ser usado por la aplicación
+
+        console.log("Datos cargados y rehidratados con éxito desde Supabase.");
+
+        return {
+            teamId: teamId,
+            nomEquip: teamData.nom_equip,
+            plantilla: plantillaData || [],
+            partidos: partidosRehidratados || [],
+            habilidadPorPosicion: habilidadPorPosicion,
+            inicialesPosicion: inicialesPosicion,
+            coordenadasPosiciones: coordenadasPosiciones,
+            // Estos ya no se cargan de un JSON, pero los mantenemos por si hay lógica que dependa de ellos
+            partitSeleccionat: 'global',
+            estadisticasJugadores: {}
+        };
+
+    } catch (error) {
+        console.error("Error fatal durante la carga de datos del equipo:", error);
+        alert(`No se pudieron cargar los datos del equipo. Revisa la consola para más detalles.`);
+        return null; // Devolvemos null para que la app sepa que la carga ha fallado
     }
-
-    // 2. Cargar la plantilla de jugadores asociada a ese equipo
-    const { data: plantillaData, error: plantillaError } = await supabase
-        .from('Jugadors')
-        .select('*')
-        .eq('id_equip', teamId);
-
-    if (plantillaError) {
-        console.error("Error cargando la plantilla:", plantillaError);
-        return null;
-    }
-
-    // Datos por defecto en caso de que el equipo sea nuevo y no tenga datos guardados
-    const datosPorDefecto = {
-        partidos: [],
-        partitSeleccionat: 'global',
-        habilidadPorPosicion: {
-            portero: [], cierre: [], alaIzquierdo: [], alaDerecho: [], pivot: []
-        },
-        estadisticasJugadores: {},
-        inicialesPosicion: { portero: 'POR', cierre: 'CIE', alaIzquierdo: 'AE', alaDerecho: 'AD', pivot: 'PIV' },
-        coordenadasPosiciones: { portero: {top: '90%', left: '50%'}, cierre: {top: '65%', left: '50%'}, alaIzquierdo: {top: '45%', left: '20%'}, alaDerecho: {top: '45%', left: '80%'}, pivot: {top: '20%', left: '50%'} }
-    };
-
-    // Combina los datos guardados con los datos por defecto
-    const dadesEquip = teamData.dades_equip || {};
-
-    return {
-        teamId: teamId,
-        plantilla: plantillaData || [],
-        partidos: dadesEquip.partidos || datosPorDefecto.partidos,
-        partitSeleccionat: dadesEquip.partitSeleccionat || datosPorDefecto.partitSeleccionat,
-        habilidadPorPosicion: dadesEquip.habilidadPorPosicion || datosPorDefecto.habilidadPorPosicion,
-        estadisticasJugadores: dadesEquip.estadisticasJugadores || datosPorDefecto.estadisticasJugadores,
-        inicialesPosicion: datosPorDefecto.inicialesPosicion,
-        coordenadasPosiciones: datosPorDefecto.coordenadasPosiciones,
-    };
 }
 
 
