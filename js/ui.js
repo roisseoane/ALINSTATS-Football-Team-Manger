@@ -19,12 +19,23 @@ export function abrirModal() {
     elements.modal.popup.classList.add('visible');
 }
 
+import { handleTeamIdSubmit } from './auth.js';
+
 export function cerrarModal() {
     const { elements } = getState();
     elements.modal.backdrop.classList.remove('visible');
     elements.modal.popup.classList.remove('visible');
     elements.modal.popup.classList.remove('modal-large');
     elements.modal.content.innerHTML = '';
+    const teamIdModal = document.getElementById('team-id-modal');
+    if (teamIdModal) teamIdModal.style.display = 'none';
+}
+
+export function mostrarModalID() {
+    const teamIdModal = document.getElementById('team-id-modal');
+    if (teamIdModal) teamIdModal.style.display = 'flex';
+    const teamIdForm = document.getElementById('team-id-form');
+    if (teamIdForm) teamIdForm.addEventListener('submit', handleTeamIdSubmit);
 }
 
 export function renderizarCarrusel() {
