@@ -1,7 +1,6 @@
 // js/state.js - VERSIÓN CORREGIDA
 
 import { renderizarCarrusel, renderizarAlineacion, renderizarEstadistiques, renderizarClips, actualizarSelectorPartits, actualizarSelectorClips } from './ui.js';
-import { guardarDatosEnSupabase } from './api.js';
 import { generarMejorAlineacion } from './core.js'; // <-- CAMBIO CLAVE: Importa desde core.js
 
 const state = {
@@ -80,7 +79,6 @@ export function inicializarEstado(datos) {
 // MUTATOR FUNCTIONS
 export function setPartidos(partidos) {
     state.partidos = partidos;
-    guardarDatosEnSupabase();
     actualizarSelectorPartits();
     actualizarSelectorClips();
     renderizarEstadistiques();
@@ -88,7 +86,6 @@ export function setPartidos(partidos) {
 
 export function addPartido(partido) {
     state.partidos.push(partido);
-    guardarDatosEnSupabase();
     actualizarSelectorPartits(partido.id);
 }
 
@@ -96,7 +93,6 @@ export function updatePartido(partidoToUpdate) {
     const index = state.partidos.findIndex(p => p.id === partidoToUpdate.id);
     if (index !== -1) {
         state.partidos[index] = partidoToUpdate;
-        guardarDatosEnSupabase();
         renderizarEstadistiques();
     }
 }
@@ -121,7 +117,6 @@ export function toggleJugadorDisponible(jugadorId) {
 
 export function setPartitSeleccionat(partidoId) {
     state.partitSeleccionat = partidoId;
-    guardarDatosEnSupabase();
     renderizarEstadistiques();
     if (state.elements.stats.editBtn) {
         const selectedPartit = state.partidos.find(p => p.id == partidoId);
@@ -140,7 +135,6 @@ export function addClipToPartido(partidoId, clip) {
             partido.clips = [];
         }
         partido.clips.push(clip);
-        guardarDatosEnSupabase();
         renderizarClips();
     }
 }
@@ -149,7 +143,6 @@ export function deleteClipFromPartido(partidoId, clipId) {
     const partido = state.partidos.find(p => p.id == partidoId);
     if (partido && partido.clips) {
         partido.clips = partido.clips.filter(c => c.id !== clipId);
-        guardarDatosEnSupabase();
         renderizarClips();
     }
 }
