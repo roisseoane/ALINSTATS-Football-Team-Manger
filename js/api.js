@@ -166,6 +166,49 @@ export async function crearPartidoEnSupabase(nom, resultat, teamId) {
 }
 
 /**
+ * Guarda (inserta o actualiza) las estadísticas de todos los jugadores para un partido específico.
+ * Utiliza 'upsert' para manejar tanto la creación como la modificación de actuaciones.
+ * @param {number} partidoId - El ID del partido para el que se guardan las estadísticas.
+ * @param {object} estadisticas - Un objeto donde las claves son los ID de los jugadores y los valores son los JSON de sus stats.
+ * @returns {Promise<boolean>} Devuelve true si la operación fue exitosa, false en caso contrario.
+ */
+export async function guardarEstadisticasPartido(partidoId, estadisticas) {
+    // 1. Preparamos los datos para el 'upsert'
+    // Convertimos el objeto de estadísticas en un array de filas que Supabase pueda entender.
+    const filasParaGuardar = Object.keys(estadisticas).map(jugadorId => ({
+        id_partit: partidoId,
+        id_jugador: parseInt(jugadorId), // Aseguramos que el ID del jugador sea un número
+        stats: estadisticas[jugadorId]  // El JSON con las estadísticas
+    }));
+
+    if (filasParaGuardar.length === 0) {
+        console.log("No hay estadísticas que guardar para este partido.");
+        return true; // No hay nada que hacer, se considera un éxito.
+    }
+
+    // 2. Ejecutamos la operación 'upsert' en la base de datos
+    try {
+        const { error } = await supabase
+            .from('ActuacioJugadors')
+            .upsert(filasParaGuardar, {
+                onConflict: 'id_partit, id_jugador' // Columnas que definen un registro único
+            });
+
+        if (error) {
+            throw new Error(`Error de Supabase al guardar las estadísticas: ${error.message}`);
+        }
+
+        console.log(`Estadísticas del partido ${partidoId} guardadas con éxito.`);
+        return true;
+
+    } catch (error) {
+        console.error("Error en la función guardarEstadisticasPartido:", error);
+        alert("No se pudieron guardar las estadísticas. Revisa la consola para más detalles.");
+        return false;
+    }
+}
+
+/**
  * Exporta los datos actuales a un fichero local (backup).
  * Esta lógica usa localStorage y no interactúa con Supabase.
  */
