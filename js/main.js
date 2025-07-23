@@ -3,6 +3,7 @@
 import { getState, setPartitSeleccionat } from './state.js';
 import { initElements } from './state.js';
 import { exportarDatos, importarDatos } from './api.js';
+import { generarMejorAlineacion } from './core.js';
 import {
     activarTab,
     crearNuevoPartido,
@@ -77,5 +78,5 @@ export function inicializarUIPrincipal() {
 
     // Renderizado inicial de la UI
     renderizarCarrusel();
-    renderizarAlineacion();
+    renderizarAlineacion(generarMejorAlineacion(getState().jugadoresDisponibles, getState().habilidadPorPosicion));
 }
