@@ -35,10 +35,34 @@ h1 {
 }
 
 /* Layout */
+main,
+.carrusel-container,
+.button-container {
+    display: none; /* Ocultar por defecto */
+}
+
+main.visible,
+.carrusel-container.visible {
+    display: block; /* Mostrar como bloque */
+}
+
+.button-container.visible {
+    display: flex; /* Mostrar como flexbox */
+}
+
 main {
     width: 100%;
     margin: 20px auto 0;
-    /* La propiedad padding-bottom se ha movido al body */
+}
+.carrusel-container {
+    width: 100%;
+    margin: 0 auto 25px auto;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    padding: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 10;
 }
 
 footer {
@@ -201,7 +225,6 @@ footer {
     bottom: 10px;
     left: 10px;
     right: 10px;
-    display: flex;
     gap: 8px;
     background: rgba(20, 20, 20, 0.8);
     padding: 8px;
@@ -211,6 +234,10 @@ footer {
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.button-container.visible {
+    display: flex; /* Mostrar como flexbox */
 }
 
 .nav-btn {
