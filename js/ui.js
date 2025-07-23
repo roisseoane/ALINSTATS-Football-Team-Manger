@@ -11,6 +11,7 @@ import {
 import { generarMejorAlineacion } from './core.js';
 import { guardarDatosEnSupabase } from './api.js';
 import { mostrarGraficasJugador } from './charts.js';
+import { guardarEstadisticasPartido } from './api.js';
 
 // Utility Functions
 export function abrirModal() {
@@ -425,29 +426,35 @@ export function mostrarEdicionEstadisticasHoja(partidoId) {
     configurarListenersEstadisticas();
 
     // Event listener para guardar los cambios
-    document.getElementById('btn-guardar-stats').onclick = () => {
-        const inputs = elements.modal.content.querySelectorAll('input[type="number"]');
+document.getElementById('btn-guardar-stats').onclick = async () => { // Convertimos la función a 'async'
+    const inputs = elements.modal.content.querySelectorAll('input[type="number"]');
+    const estadisticasDelPartido = partido.estadistiques || {};
 
-        if (!partido.estadistiques) {
-            partido.estadistiques = {};
+    // 1. Recopilamos todos los datos del formulario en un objeto, como ya hacías.
+    inputs.forEach(input => {
+        const jugadorId = input.dataset.jugador;
+        const statName = input.dataset.stat;
+        const value = parseInt(input.value) || 0;
+
+        if (!estadisticasDelPartido[jugadorId]) {
+            estadisticasDelPartido[jugadorId] = {};
         }
+        estadisticasDelPartido[jugadorId][statName] = value;
+    });
 
-        inputs.forEach(input => {
-            const jugadorId = input.dataset.jugador;
-            const statName = input.dataset.stat;
-            const value = parseInt(input.value) || 0;
+    // 2. Llamamos a la nueva función de la API para guardar los datos en Supabase.
+    const exito = await guardarEstadisticasPartido(partido.id, estadisticasDelPartido);
 
-            if (!partido.estadistiques[jugadorId]) {
-                partido.estadistiques[jugadorId] = {};
-            }
-            partido.estadistiques[jugadorId][statName] = value;
-        });
-
-        updatePartido(partido);
+    if (exito) {
+        // 3. Si se guardó correctamente, actualizamos el estado local de la app.
+        partido.estadistiques = estadisticasDelPartido; // Actualizamos el objeto del partido en el estado
+        updatePartido(partido); // Esta función ya se encarga de redibujar la tabla de stats
         cerrarModal();
-    };
+        alert('Estadísticas guardadas con éxito.');
+    }
+};
 
-    document.getElementById('btn-cancelar-stats').onclick = cerrarModal;
+document.getElementById('btn-cancelar-stats').onclick = cerrarModal;
 }
 
 export const renderizarEstadistiques = () => {
