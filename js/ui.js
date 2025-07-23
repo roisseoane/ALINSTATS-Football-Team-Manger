@@ -34,7 +34,6 @@ export function mostrarModalID() {
     const teamIdModal = document.getElementById('team-id-modal');
     if (teamIdModal) teamIdModal.style.display = 'flex';
     const teamIdForm = document.getElementById('team-id-form');
-    if (teamIdForm) teamIdForm.addEventListener('submit', handleTeamIdSubmit);
 }
 
 export function renderizarCarrusel() {
