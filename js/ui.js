@@ -32,8 +32,14 @@ export function cerrarModal() {
 
 export function mostrarModalID() {
     const teamIdModal = document.getElementById('team-id-modal');
-    if (teamIdModal) teamIdModal.style.display = 'flex';
-    const teamIdForm = document.getElementById('team-id-form');
+    const backdrop = document.getElementById('modal-backdrop'); // Necesitamos el fondo también
+
+    if (backdrop) {
+        backdrop.classList.add('visible');
+    }
+    if (teamIdModal) {
+        teamIdModal.classList.add('visible');
+    }
 }
 
 export function renderizarCarrusel() {
