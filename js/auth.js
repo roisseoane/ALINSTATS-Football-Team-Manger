@@ -1,7 +1,7 @@
 import { supabase } from './supabaseClient.js';
-import { inicializarEstado } from './state.js';
-import { renderizarCarrusel, renderizarAlineacion, activarTab, actualizarSelectorPartits, renderizarEstadistiques, actualizarSelectorClips, cerrarModal, mostrarModalID } from './ui.js';
-import { generarMejorAlineacion } from './main.js';
+import { inicializarEstado, getState } from './state.js';
+import { mostrarModalID, cerrarModal } from './ui.js';
+import { inicializarUIPrincipal } from './main.js';
 import { cargarDatosDelEquipo } from './api.js';
 
 async function checkTeamId() {
@@ -21,7 +21,8 @@ async function checkTeamId() {
         if (data && data.length > 0) {
             const datosIniciales = await cargarDatosDelEquipo(data[0].id);
             inicializarEstado(datosIniciales);
-            renderizarApp();
+            inicializarUIPrincipal();
+            cerrarModal();
         } else {
             localStorage.removeItem('id_usuari_equip');
             mostrarModalID();
@@ -29,17 +30,6 @@ async function checkTeamId() {
     } else {
         mostrarModalID();
     }
-}
-
-function renderizarApp() {
-    const { partitSeleccionat } = getState();
-    renderizarCarrusel();
-    renderizarAlineacion(generarMejorAlineacion(), false);
-    activarTab('alineacio');
-    actualizarSelectorPartits(partitSeleccionat);
-    actualizarSelectorClips();
-    renderizarEstadistiques();
-    cerrarModal();
 }
 
 export async function handleTeamIdSubmit(event) {
@@ -66,7 +56,8 @@ export async function handleTeamIdSubmit(event) {
         localStorage.setItem('id_usuari_equip', teamId);
         const datosIniciales = await cargarDatosDelEquipo(data[0].id);
         inicializarEstado(datosIniciales);
-        renderizarApp();
+        inicializarUIPrincipal();
+        cerrarModal();
     } else {
         const teamName = prompt('Este ID de equipo no existe. Introduce el nombre de tu equipo para crear uno nuevo:');
         if (teamName) {
@@ -84,10 +75,16 @@ export async function handleTeamIdSubmit(event) {
                 localStorage.setItem('id_usuari_equip', teamId);
                 const datosIniciales = await cargarDatosDelEquipo(newTeam[0].id);
                 inicializarEstado(datosIniciales);
-                renderizarApp();
+                inicializarUIPrincipal();
+                cerrarModal();
             }
         }
     }
 }
 
-document.addEventListener('DOMContentLoaded', checkTeamId);
+const form = document.getElementById('team-id-form');
+if (form) {
+    form.addEventListener('submit', handleTeamIdSubmit);
+}
+
+checkTeamId();

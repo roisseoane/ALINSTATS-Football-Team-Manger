@@ -50,10 +50,8 @@ export function generarMejorAlineacion() {
     return alineacion;
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+export function inicializarUIPrincipal() {
     initElements();
-    const datosIniciales = cargarDatosIniciales();
-    inicializarEstado(datosIniciales);
     const { elements, partitSeleccionat } = getState();
 
     // Event Listeners for Stats
@@ -125,4 +123,9 @@ document.addEventListener('DOMContentLoaded', () => {
     actualizarSelectorPartits(partitSeleccionat);
     actualizarSelectorClips();
     renderizarEstadistiques();
-});
+
+    // Mostrar elementos principales
+    document.querySelector('main').classList.add('visible');
+    document.querySelector('.carrusel-container').classList.add('visible');
+    document.querySelector('.button-container').classList.add('visible');
+}
