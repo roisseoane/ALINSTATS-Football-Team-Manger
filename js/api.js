@@ -1,31 +1,44 @@
-import { getState } from './state.js';
+import { supabase } from './supabaseClient.js';
 import { data as defaultData } from './data.js';
 
-// Función para guardar partidos y estadísticas en localStorage
-export function guardarDatos() {
-    const { partidos, partitSeleccionat } = getState();
-    localStorage.setItem('partits', JSON.stringify(partidos));
-    localStorage.setItem('partitSeleccionat', partitSeleccionat);
+export async function guardarDatos(id_equip, partidos, partitSeleccionat) {
+    const { error } = await supabase
+        .from('Equips')
+        .update({ partidos, partitSeleccionat })
+        .eq('id', id_equip);
+
+    if (error) {
+        console.error('Error saving data to Supabase:', error);
+    }
 }
 
-// Función para cargar los datos iniciales
-export function cargarDatosIniciales() {
-    const savedPartits = localStorage.getItem('partits');
-    const savedPartitSel = localStorage.getItem('partitSeleccionat');
+export async function cargarDatosDelEquipo(id_equip) {
+    const { data: teamData, error: teamError } = await supabase
+        .from('Equips')
+        .select('partidos, partitSeleccionat')
+        .eq('id', id_equip)
+        .single();
 
-    if (savedPartits) {
-        return {
-            ...defaultData,
-            partidos: JSON.parse(savedPartits),
-            partitSeleccionat: savedPartitSel || 'global'
-        };
-    } else {
-        return {
-            ...defaultData,
-            partidos: [],
-            partitSeleccionat: 'global'
-        };
+    if (teamError) {
+        console.error('Error fetching team data from Supabase:', teamError);
+        return { ...defaultData, partidos: [], partitSeleccionat: 'global' };
     }
+
+    const { data: playersData, error: playersError } = await supabase
+        .from('Jugadors')
+        .select('*')
+        .eq('id_equip', id_equip);
+
+    if (playersError) {
+        console.error('Error fetching players from Supabase:', playersError);
+    }
+
+    return {
+        ...defaultData,
+        partidos: teamData.partidos || [],
+        partitSeleccionat: teamData.partitSeleccionat || 'global',
+        jugadores: playersData || [],
+    };
 }
 
 export function exportarDatos() {

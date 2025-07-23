@@ -431,6 +431,67 @@ section {
     visibility: visible;
 }
 
+#team-id-modal .modal-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+#team-id-modal h2 {
+    font-size: 1.8rem;
+    color: #00aaff;
+    margin-bottom: 10px;
+}
+
+#team-id-modal p {
+    font-size: 1rem;
+    color: #aaa;
+    margin-bottom: 25px;
+}
+
+#team-id-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#team-id-input {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.1rem;
+    background-color: #232a33;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #fff;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+#team-id-input:focus {
+    outline: none;
+    border-color: #00aaff;
+    box-shadow: 0 0 0 4px rgba(0, 170, 255, 0.2);
+}
+
+#team-id-form button {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #fff;
+    background-color: #00aaff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#team-id-form button:hover {
+    background-color: #0088cc;
+}
+
 .modal-close-btn {
     position: absolute;
     top: 15px;
