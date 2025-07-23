@@ -19,15 +19,18 @@ export function abrirModal() {
     elements.modal.popup.classList.add('visible');
 }
 
-
 export function cerrarModal() {
     const { elements } = getState();
     elements.modal.backdrop.classList.remove('visible');
     elements.modal.popup.classList.remove('visible');
     elements.modal.popup.classList.remove('modal-large');
     elements.modal.content.innerHTML = '';
+
+    // Modificación aquí: en lugar de cambiar el display, quitamos la clase 'visible'
     const teamIdModal = document.getElementById('team-id-modal');
-    if (teamIdModal) teamIdModal.style.display = 'none';
+    if (teamIdModal) {
+        teamIdModal.classList.remove('visible');
+    }
 }
 
 export function mostrarModalID() {
