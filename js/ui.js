@@ -9,7 +9,7 @@ import {
     setJugadoresDisponibles
 } from './state.js';
 import { generarMejorAlineacion } from './core.js';
-import { guardarDatos } from './api.js';
+import { guardarDatosEnSupabase } from './api.js';
 import { mostrarGraficasJugador } from './charts.js';
 
 // Utility Functions
