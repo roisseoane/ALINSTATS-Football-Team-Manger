@@ -19,7 +19,6 @@ export function abrirModal() {
     elements.modal.popup.classList.add('visible');
 }
 
-import { handleTeamIdSubmit } from './auth.js';
 
 export function cerrarModal() {
     const { elements } = getState();
