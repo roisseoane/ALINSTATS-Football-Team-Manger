@@ -4,35 +4,6 @@ import { getState } from './state.js';
 import { supabase } from './supabaseClient.js';
 
 /**
- * Guarda el estado actual de los partidos y la selección en la base de datos de Supabase.
- * Esta función es llamada cada vez que hay un cambio en los datos que debe persistir.
- */
-export async function guardarDatosEnSupabase() {
-    const { teamId, partidos, partitSeleccionat } = getState();
-
-    if (!teamId) {
-        console.error("No se puede guardar: teamId no está definido en el estado.");
-        return;
-    }
-
-    // Crea un objeto con los datos que quieres guardar.
-    // Supabase guardará este objeto JSON en la columna 'dades_equip'.
-    const datosParaGuardar = {
-        partidos: partidos,
-        partitSeleccionat: partitSeleccionat,
-    };
-
-    const { error } = await supabase
-        .from('Equips') // El nombre de tu tabla en Supabase
-        .update({ dades_equip: datosParaGuardar }) // La columna donde se guarda el JSON de datos
-        .eq('id', teamId); // Asegura que actualizamos solo el registro de nuestro equipo
-
-    if (error) {
-        console.error('Error al guardar los datos en Supabase:', error);
-    }
-}
-
-/**
  * Carga los datos iniciales del equipo desde la base de datos relacional de Supabase.
  * Esta versión está refactorizada para trabajar con tablas separadas.
  */
