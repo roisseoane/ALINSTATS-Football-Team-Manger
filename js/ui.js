@@ -8,7 +8,7 @@ import {
     deleteClipFromPartido,
     setJugadoresDisponibles
 } from './state.js';
-import { generarMejorAlineacion } from './main.js';
+import { generarMejorAlineacion } from './core.js';
 import { guardarDatos } from './api.js';
 import { mostrarGraficasJugador } from './charts.js';
 
