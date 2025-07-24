@@ -16,9 +16,60 @@ import { guardarEstadisticasPartido,
 import { handleTeamLoginSubmit,
          handleCheckStatus,
          handleCancelRequest,
-         handleVoteSubmit } from './auth.js';
+         handleVoteSubmit,
+         handleRemovePlayerRequest } from './auth.js';
 
 // Utility Functions
+
+/**
+ * Renderiza el contenido de la pantalla de configuración,
+ * empezando por el panel de gestión de jugadores.
+ */
+function renderizarContenidoConfiguracion() {
+    const { plantilla, currentUser } = getState();
+    const container = document.getElementById('configuracion-content');
+
+    if (!container) return;
+
+    // Creamos la lista de jugadores con un botón de eliminar para cada uno,
+    // excepto para el propio usuario que está viendo la pantalla.
+    const listaJugadoresHtml = plantilla.map(jugador => {
+        if (jugador.id === currentUser.player_pk_id) {
+            return `
+                <li class="list-item">
+                    <span>${jugador.nom_mostrat} (Tú)</span>
+                </li>
+            `;
+        }
+        return `
+            <li class="list-item">
+                <span>${jugador.nom_mostrat}</span>
+                <button class="btn-danger btn-eliminar-jugador" 
+                        data-player-id="${jugador.id}" 
+                        data-player-name="${jugador.nom_mostrat}">
+                    <i class="fas fa-user-minus"></i> Eliminar
+                </button>
+            </li>
+        `;
+    }).join('');
+
+    const content = `
+        <div class="config-card">
+            <h3>Gestió de Jugadors</h3>
+            <p class="card-subtitle">Inicia una votació per eliminar un jugador de l'equip.</p>
+            <ul class="config-list">
+                ${listaJugadoresHtml}
+            </ul>
+        </div>
+    `;
+
+    container.innerHTML = content;
+
+    // Adjuntamos el listener a los nuevos botones de eliminar
+    document.querySelectorAll('.btn-eliminar-jugador').forEach(button => {
+        button.addEventListener('click', handleRemovePlayerRequest);
+    });
+}
 
 /**
  * Muestra un modal de votación para una o más peticiones pendientes.
