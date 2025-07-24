@@ -12,6 +12,7 @@ import { generarMejorAlineacion } from './core.js';
 import { guardarDatosEnSupabase } from './api.js';
 import { mostrarGraficasJugador } from './charts.js';
 import { guardarEstadisticasPartido } from './api.js';
+import { handleTeamLoginSubmit } from './auth.js';
 
 // Utility Functions
 export function abrirModal() {
