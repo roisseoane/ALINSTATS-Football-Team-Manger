@@ -19,7 +19,8 @@ import {
     cerrarModal } from './ui.js';
 
 import { inicializarEstado,
-         getState } from './state.js';
+         getState,
+         initElements } from './state.js';
 import { inicializarUIPrincipal } from './main.js';
 
 // --- FUNCIONES ---
@@ -329,6 +330,6 @@ async function iniciarFlujoDeAutenticacion() {
 
 // Espera a que todo el HTML esté cargado antes de ejecutar cualquier script
 document.addEventListener('DOMContentLoaded', () => {
-    // La única línea que se ejecuta al inicio. Todo lo demás es una consecuencia de esta llamada.
+    initElements();
     iniciarFlujoDeAutenticacion();
 });
