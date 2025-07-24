@@ -404,8 +404,7 @@ export function activarTab(tab) {
     } else if (tab === 'configuracion') {
         elements.sections.configuracion.style.display = 'block';
         elements.nav.btnConfiguracion.classList.add('active');
-        // Aquí podríamos llamar a una función que renderice el contenido de la configuración
-        // renderizarContenidoConfiguracion(); 
+        renderizarContenidoConfiguracion(); 
     }
 
     // Actualizar el estado de los botones
