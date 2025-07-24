@@ -23,7 +23,7 @@ async function handleLoginRequest(e) {
             options: {
                 // Opcional: a dónde redirigir al usuario después de hacer clic en el enlace.
                 // Debe ser una URL de tu sitio desplegado en Vercel.
-                emailRedirectTo: 'https://alinstats-football-team-manger.vercel.app',
+                emailRedirectTo: 'https://alinstats-football-team-manger.vercel.app'
             },
         });
 
