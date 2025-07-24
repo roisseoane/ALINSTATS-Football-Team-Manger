@@ -34,15 +34,41 @@ export function cerrarModal() {
     }
 }
 
+/**
+ * Muestra el primer modal del flujo de login, pidiendo el ID de usuario del equipo.
+ */
 export function mostrarLoginDeEquipo() {
-    const teamIdModal = document.getElementById('team-id-modal');
-    const backdrop = document.getElementById('modal-backdrop'); // Necesitamos el fondo también
+    const { elements } = getState(); // Asumimos que initElements ya se ha llamado
 
-    if (backdrop) {
-        backdrop.classList.add('visible');
-    }
-    if (teamIdModal) {
-        teamIdModal.classList.add('visible');
+    // Reutilizamos el modal genérico que ya tienes en index.html
+    const modalContent = `
+        <div class="modal-header">
+            <h2><i class="fas fa-users"></i> Accés a l'Equip</h2>
+            <p class="modal-subtitle">Introdueix l'identificador del teu equip per començar.</p>
+        </div>
+        <form id="form-team-login" class="form-login">
+            <div class="form-group">
+                <label for="team-id-input">ID de l'Equip</label>
+                <input type="text" id="team-id-input" class="form-control" required placeholder="Ex: fs_vic_2024">
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-arrow-right"></i> Següent
+                </button>
+            </div>
+        </form>
+    `;
+
+    // Inyectamos el contenido en el popup y lo hacemos visible
+    elements.modal.content.innerHTML = modalContent;
+    elements.modal.backdrop.classList.add('visible');
+    elements.modal.popup.classList.add('visible');
+
+    // Añadimos el listener para el envío del formulario
+    const form = document.getElementById('form-team-login');
+    if (form) {
+        // Adjuntamos una función que definiremos en auth.js
+        form.addEventListener('submit', handleTeamLoginSubmit);
     }
 }
 
