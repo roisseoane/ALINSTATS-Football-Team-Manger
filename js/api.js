@@ -38,6 +38,50 @@ export async function validarSesionJugador(team_pk_id, player_pk_id) {
 }
 
 /**
+ * Crea una nueva petición en la tabla 'Peticiones'.
+ * Este es el punto de entrada para cualquier acción que requiera votación grupal.
+ * @param {number} id_equip - El ID del equipo donde se origina la petición.
+ * @param {number|null} id_creador - El ID del jugador que crea la petición (puede ser null si es un nuevo aspirante).
+ * @param {string} tipo - El tipo de petición (ej: "añadir_jugador", "eliminar_jugador").
+ * @param {object} metadata - Un objeto JSON con los detalles de la petición.
+ * @returns {Promise<object|null>} El objeto de la nueva petición creada o null si hubo un error.
+ */
+export async function crearPeticion(id_equip, id_creador, tipo, metadata) {
+    if (!id_equip || !tipo || !metadata) {
+        console.error("Error: Faltan datos esenciales para crear la petición (equipo, tipo o metadata).");
+        return null;
+    }
+
+    try {
+        const { data: nuevaPeticion, error } = await supabase
+            .from('Peticiones')
+            .insert([
+                {
+                    id_equip: id_equip,
+                    id_creador: id_creador,
+                    tipo: tipo,
+                    metadata: metadata,
+                    estado: 'pendiente' // Todas las peticiones empiezan como pendientes
+                }
+            ])
+            .select() // Devuelve la fila recién creada
+            .single(); // Devuelve un objeto, no un array
+
+        if (error) {
+            throw new Error(`Error de Supabase al crear la petición: ${error.message}`);
+        }
+
+        console.log(`Petición de tipo '${tipo}' creada con éxito:`, nuevaPeticion);
+        return nuevaPeticion;
+
+    } catch (error) {
+        console.error("Error en la función crearPeticion:", error);
+        alert("No se pudo crear la solicitud. Revisa la consola para más detalles.");
+        return null;
+    }
+}
+
+/**
  * Carga los datos iniciales del equipo desde la base de datos relacional de Supabase.
  * Esta versión está refactorizada para trabajar con tablas separadas.
  */
