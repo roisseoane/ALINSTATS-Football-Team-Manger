@@ -4,6 +4,40 @@ import { getState } from './state.js';
 import { supabase } from './supabaseClient.js';
 
 /**
+ * Verifica en la base de datos si un jugador todavía existe y pertenece a un equipo.
+ * Esta es la comprobación de seguridad clave en cada arranque de la aplicación.
+ * @param {number} team_pk_id - El ID numérico y permanente del equipo.
+ * @param {number} player_pk_id - El ID numérico y permanente del jugador.
+ * @returns {Promise<boolean>} Devuelve true si la sesión es válida, false en caso contrario.
+ */
+export async function validarSesionJugador(team_pk_id, player_pk_id) {
+    // Si por alguna razón no tenemos los IDs, la sesión no es válida.
+    if (!team_pk_id || !player_pk_id) {
+        return false;
+    }
+
+    try {
+        const { data, error, count } = await supabase
+            .from('Jugadors')
+            .select('id', { count: 'exact' }) // Solo necesitamos saber si existe, count es muy eficiente.
+            .eq('id', player_pk_id)
+            .eq('id_equip', team_pk_id);
+
+        if (error) {
+            console.error("Error al validar la sesión del jugador:", error.message);
+            return false;
+        }
+
+        // Si el conteo de filas que coinciden es 1, el jugador es válido. Si es 0, ha sido eliminado.
+        return count === 1;
+
+    } catch (error) {
+        console.error("Error inesperado en la función validarSesionJugador:", error);
+        return false;
+    }
+}
+
+/**
  * Carga los datos iniciales del equipo desde la base de datos relacional de Supabase.
  * Esta versión está refactorizada para trabajar con tablas separadas.
  */
