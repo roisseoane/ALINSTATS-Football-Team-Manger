@@ -8,7 +8,9 @@ import {
     crearPeticion,
     registrarVoto,
     ejecutarAccionPostVoto,
-    crearNuevoEquipoConPrimerJugador } from './api.js';
+    crearNuevoEquipoConPrimerJugador,
+    getNumeroDeJugadores,
+    añadirJugadorDirectamente } from './api.js';
 
 import {
     // Estas funciones de UI aún no existen, las crearemos en el siguiente paso
@@ -199,24 +201,52 @@ export function handlePlayerSelection(team_pk_id, player_pk_id) {
  * @param {number} team_pk_id - El ID del equipo al que se quiere unir.
  * @param {string} newName - El nombre del nuevo aspirante.
  */
+/**
+ * Maneja la solicitud de un nuevo jugador para unirse al equipo.
+ * Ahora comprueba si el equipo tiene miembros antes de decidir si crea una petición
+ * o añade al jugador directamente.
+ * @param {number} team_pk_id - El ID del equipo al que se quiere unir.
+ * @param {string} newName - El nombre del nuevo aspirante.
+ */
 export async function handleNewPlayerSubmit(team_pk_id, newName) {
     console.log(`Nou jugador "${newName}" sol·licita unir-se a l'equip ${team_pk_id}`);
 
-    // Creamos la petición grupal para añadir al jugador
-    const metadata = { nombre_solicitante: newName };
-    const nuevaPeticion = await crearPeticion(team_pk_id, null, 'añadir_jugador', metadata);
+    // PASO CLAVE: Comprobamos cuántos jugadores hay en el equipo
+    const numeroJugadores = await getNumeroDeJugadores(team_pk_id);
 
-    if (nuevaPeticion) {
-        // Guardamos el ID de la petición para poder comprobar su estado más tarde
-        localStorage.setItem('id_peticion_pendiente', nuevaPeticion.id);
-        
-        // Mostramos la pantalla de espera
-        mostrarPantallaDeEspera(nuevaPeticion);
+    if (numeroJugadores === null) {
+        alert("Hi ha hagut un error en verificar l'equip.");
+        return;
+    }
+
+    if (numeroJugadores === 0) {
+        // CASO A: No hay jugadores. Añadimos al usuario directamente.
+        console.log("El equipo está vacío. Añadiendo al jugador directamente.");
+        const nuevoJugador = await añadirJugadorDirectamente(team_pk_id, newName);
+
+        if (nuevoJugador) {
+            // Guardamos las credenciales y recargamos para iniciar sesión
+            localStorage.setItem('player_pk_id', nuevoJugador.id);
+            alert(`Benvingut, ${newName}! Ets el primer membre de l'equip.`);
+            window.location.reload();
+        } else {
+            alert("Hi ha hagut un error en afegir-te a l'equip.");
+        }
+
     } else {
-        alert("Hi ha hagut un error en enviar la teva sol·licitud.");
+        // CASO B: Ya hay jugadores. Procedemos con la petición grupal.
+        console.log("El equipo ya tiene miembros. Creando petición grupal.");
+        const metadata = { nombre_solicitante: newName };
+        const nuevaPeticion = await crearPeticion(team_pk_id, null, 'añadir_jugador', metadata);
+
+        if (nuevaPeticion) {
+            localStorage.setItem('id_peticion_pendiente', nuevaPeticion.id);
+            mostrarPantallaDeEspera(nuevaPeticion);
+        } else {
+            alert("Hi ha hagut un error en enviar la teva sol·licitud.");
+        }
     }
 }
-
 /**
  * Maneja el envío del formulario de login de equipo.
  * Valida el ID del equipo y, si es correcto, avanza al siguiente paso (login de jugador).
