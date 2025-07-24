@@ -15,9 +15,69 @@ import { guardarEstadisticasPartido,
          getJugadoresEquipo} from './api.js';
 import { handleTeamLoginSubmit,
          handleCheckStatus,
-         handleCancelRequest } from './auth.js';
+         handleCancelRequest,
+         handleVoteSubmit } from './auth.js';
 
 // Utility Functions
+
+/**
+ * Muestra un modal de votación para una o más peticiones pendientes.
+ * El contenido del modal es dinámico según el tipo de petición.
+ * @param {Array<object>} peticiones - Un array con las peticiones pendientes de voto.
+ */
+export function mostrarModalDeVotacion(peticiones) {
+    if (!peticiones || peticiones.length === 0) return;
+
+    // Por ahora, manejamos la primera petición de la lista.
+    // En el futuro, se podría crear un carrusel si hay varias.
+    const peticion = peticiones[0];
+
+    const { elements } = getState();
+    let titulo, descripcion;
+
+    // Generamos el contenido dinámicamente según el tipo de petición
+    switch (peticion.tipo) {
+        case 'añadir_jugador':
+            titulo = `<i class="fas fa-user-plus"></i> Nova Sol·licitud d'Unió`;
+            descripcion = `El jugador <strong>${peticion.metadata.nombre_solicitante}</strong> vol unir-se a l'equip. L'acceptes?`;
+            break;
+        case 'eliminar_jugador':
+            titulo = `<i class="fas fa-user-minus"></i> Proposta d'Eliminació`;
+            descripcion = `S'ha proposat eliminar el jugador <strong>${peticion.metadata.nombre_jugador_objetivo}</strong> de l'equip. Estàs d'acord?`;
+            break;
+        case 'cambiar_id_equip':
+            titulo = `<i class="fas fa-id-card"></i> Proposta de Canvi d'ID`;
+            descripcion = `S'ha proposat canviar l'ID de l'equip a <strong>"${peticion.metadata.nuevo_id_equip}"</strong>. L'acceptes?`;
+            break;
+        default:
+            titulo = 'Nova Petició';
+            descripcion = 'Hi ha una nova petició pendent de votació.';
+    }
+
+    // Creamos el HTML del modal
+    const modalContent = `
+        <div class="modal-header">
+            <h2>${titulo}</h2>
+            <p class="modal-subtitle">${descripcion}</p>
+        </div>
+        <div class="form-actions">
+            <button class="btn-primary btn-vote" data-peticion-id="${peticion.id}" data-voto="true">
+                <i class="fas fa-check"></i> Acceptar
+            </button>
+            <button class="btn-secondary btn-vote" data-peticion-id="${peticion.id}" data-voto="false">
+                <i class="fas fa-times"></i> Denegar
+            </button>
+        </div>
+    `;
+
+    elements.modal.content.innerHTML = modalContent;
+    abrirModal();
+
+    // Añadimos un único listener para ambos botones de voto
+    document.querySelectorAll('.btn-vote').forEach(button => {
+        button.addEventListener('click', handleVoteSubmit);
+    });
+}
 
 /**
  * Muestra una pantalla de espera para los usuarios cuya solicitud de unión está pendiente.
