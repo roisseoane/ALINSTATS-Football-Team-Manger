@@ -25,6 +25,48 @@ import { inicializarUIPrincipal } from './main.js';
 // --- FUNCIONES ---
 
 /**
+ * Maneja el envío del formulario para cambiar el ID de usuario del equipo.
+ * Inicia una petición grupal para aprobar el cambio.
+ * @param {Event} e - El evento del formulario.
+ */
+export async function handleChangeTeamIdRequest(e) {
+    e.preventDefault();
+    const newTeamId = document.getElementById('new-team-id').value.trim();
+    const { team_pk_id, currentUser, team_id_publico } = getState();
+
+    if (!newTeamId) {
+        alert("El nou ID no pot estar buit.");
+        return;
+    }
+
+    if (newTeamId === team_id_publico) {
+        alert("El nou ID ha de ser diferent de l'actual.");
+        return;
+    }
+
+    const confirmacion = confirm(`Estàs segur que vols iniciar una votació per canviar l'ID de l'equip a "${newTeamId}"? Aquest canvi afectarà a tots els membres.`);
+
+    if (confirmacion) {
+        const metadata = { nuevo_id_equip: newTeamId };
+        const button = e.currentTarget.querySelector('button[type="submit"]');
+
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creant...';
+
+        const nuevaPeticion = await crearPeticion(team_pk_id, currentUser.player_pk_id, 'cambiar_id_equip', metadata);
+
+        if (nuevaPeticion) {
+            alert("S'ha creat la petició per canviar l'ID de l'equip. La resta de l'equip ha de votar ara.");
+        } else {
+            alert("Hi ha hagut un error en crear la petició.");
+        }
+
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-shield-alt"></i> Proposar Canvi';
+    }
+}
+
+/**
  * Maneja el clic en el botón "Eliminar" de un jugador.
  * Inicia una petición grupal para eliminar al jugador seleccionado.
  * @param {Event} e - El evento del clic.
