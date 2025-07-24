@@ -4,7 +4,8 @@ import {
     obtenerPeticionesPendientes,
     comprobarEstadoPeticion,
     cargarDatosDelEquipo,
-    getEquipoPorIdUsuario} from './api.js';
+    getEquipoPorIdUsuario,
+    crearPeticion } from './api.js';
 
 import {
     // Estas funciones de UI aún no existen, las crearemos en el siguiente paso
@@ -20,7 +21,44 @@ import { inicializarUIPrincipal } from './main.js';
 
 // --- FUNCIONES ---
 
-// js/auth.js
+/**
+ * Maneja la selección de un jugador existente de la lista.
+ * Guarda las credenciales en localStorage y reinicia el flujo de autenticación.
+ * @param {number} team_pk_id - El ID permanente del equipo.
+ * @param {number} player_pk_id - El ID permanente del jugador seleccionado.
+ */
+export function handlePlayerSelection(team_pk_id, player_pk_id) {
+    console.log(`Jugador seleccionat: ${player_pk_id}`);
+    localStorage.setItem('team_pk_id', team_pk_id);
+    localStorage.setItem('player_pk_id', player_pk_id);
+
+    // Reiniciamos el flujo. Ahora la app detectará los nuevos IDs y validará la sesión.
+    window.location.reload();
+}
+
+/**
+ * Maneja la solicitud de un nuevo jugador para unirse al equipo.
+ * Crea una petición de tipo "añadir_jugador" y guarda el ID de la petición en localStorage.
+ * @param {number} team_pk_id - El ID del equipo al que se quiere unir.
+ * @param {string} newName - El nombre del nuevo aspirante.
+ */
+export async function handleNewPlayerSubmit(team_pk_id, newName) {
+    console.log(`Nou jugador "${newName}" sol·licita unir-se a l'equip ${team_pk_id}`);
+
+    // Creamos la petición grupal para añadir al jugador
+    const metadata = { nombre_solicitante: newName };
+    const nuevaPeticion = await crearPeticion(team_pk_id, null, 'añadir_jugador', metadata);
+
+    if (nuevaPeticion) {
+        // Guardamos el ID de la petición para poder comprobar su estado más tarde
+        localStorage.setItem('id_peticion_pendiente', nuevaPeticion.id);
+        
+        // Mostramos la pantalla de espera
+        mostrarPantallaDeEspera(nuevaPeticion);
+    } else {
+        alert("Hi ha hagut un error en enviar la teva sol·licitud.");
+    }
+}
 
 /**
  * Maneja el envío del formulario de login de equipo.
