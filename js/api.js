@@ -4,6 +4,53 @@ import { getState } from './state.js';
 import { supabase } from './supabaseClient.js';
 
 /**
+ * Cuenta el número de jugadores en un equipo específico.
+ * @param {number} team_pk_id - El ID permanente del equipo.
+ * @returns {Promise<number|null>} El número de jugadores o null si hay un error.
+ */
+export async function getNumeroDeJugadores(team_pk_id) {
+    if (!team_pk_id) return null;
+    try {
+        const { count, error } = await supabase
+            .from('Jugadors')
+            .select('*', { count: 'exact', head: true }) // 'head:true' hace que no devuelva datos, solo el conteo. Es muy eficiente.
+            .eq('id_equip', team_pk_id);
+
+        if (error) throw new Error(error.message);
+        return count;
+
+    } catch (error) {
+        console.error("Error al contar los jugadores del equipo:", error);
+        return null;
+    }
+}
+
+/**
+ * Añade un jugador directamente a un equipo, sin pasar por el sistema de peticiones.
+ * Se usa para el primer miembro de un equipo.
+ * @param {number} team_pk_id - El ID del equipo.
+ * @param {string} nombreJugador - El nombre del nuevo jugador.
+ * @returns {Promise<object|null>} El objeto del nuevo jugador creado o null si hay un error.
+ */
+export async function añadirJugadorDirectamente(team_pk_id, nombreJugador) {
+    if (!team_pk_id || !nombreJugador) return null;
+    try {
+        const { data: nuevoJugador, error } = await supabase
+            .from('Jugadors')
+            .insert({ id_equip: team_pk_id, nom_mostrat: nombreJugador })
+            .select()
+            .single();
+
+        if (error) throw new Error(error.message);
+        return nuevoJugador;
+
+    } catch (error) {
+        console.error("Error al añadir jugador directamente:", error);
+        return null;
+    }
+}
+
+/**
  * Crea un nuevo equipo y añade a su primer jugador.
  * Esta función es crítica para el flujo de registro inicial.
  * @param {string} idUsuarioEquipo - El ID público que el equipo usará para el login.
