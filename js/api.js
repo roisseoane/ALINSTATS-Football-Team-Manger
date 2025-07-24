@@ -82,6 +82,52 @@ export async function crearPeticion(id_equip, id_creador, tipo, metadata) {
 }
 
 /**
+ * Registra el voto de un jugador para una petición específica en la tabla 'Votos'.
+ * @param {number} id_peticion - El ID de la petición sobre la que se está votando.
+ * @param {number} id_votante - El ID del jugador que emite el voto.
+ * @param {boolean} voto - El voto del jugador (true para 'Aceptar', false para 'Denegar').
+ * @returns {Promise<boolean>} Devuelve true si el voto se registró con éxito, false en caso contrario.
+ */
+export async function registrarVoto(id_peticion, id_votante, voto) {
+    if (!id_peticion || !id_votante || typeof voto !== 'boolean') {
+        console.error("Error: Faltan datos esenciales para registrar el voto (petición, votante o valor del voto).");
+        return false;
+    }
+
+    try {
+        const { error } = await supabase
+            .from('Votos')
+            .insert([
+                {
+                    id_peticion: id_peticion,
+                    id_votante: id_votante,
+                    voto: voto
+                }
+            ]);
+
+        if (error) {
+            // Un 'duplicate key error' (código 23505) es esperado si el usuario intenta votar de nuevo.
+            // Lo manejamos con elegancia en lugar de mostrar un error alarmante.
+            if (error.code === '23505') {
+                console.warn(`El jugador ${id_votante} ya ha votado en la petición ${id_peticion}.`);
+                alert("Ya has emitido un voto para esta solicitud.");
+            } else {
+                throw new Error(`Error de Supabase al registrar el voto: ${error.message}`);
+            }
+            return false;
+        }
+
+        console.log(`Voto del jugador ${id_votante} registrado con éxito para la petición ${id_peticion}.`);
+        return true;
+
+    } catch (error) {
+        console.error("Error en la función registrarVoto:", error);
+        alert("No se pudo registrar tu voto. Revisa la consola para más detalles.");
+        return false;
+    }
+}
+
+/**
  * Carga los datos iniciales del equipo desde la base de datos relacional de Supabase.
  * Esta versión está refactorizada para trabajar con tablas separadas.
  */
