@@ -166,6 +166,37 @@ export async function obtenerPeticionesPendientes(id_equip, id_jugador) {
 }
 
 /**
+ * Comprueba el estado actual de una petición específica en la base de datos.
+ * Esencial para el flujo de un nuevo aspirante que espera la aprobación del equipo.
+ * @param {number} id_peticion - El ID de la petición cuyo estado se quiere consultar.
+ * @returns {Promise<string|null>} El estado de la petición (ej: "pendiente", "aprobada") o null si hay un error.
+ */
+export async function comprobarEstadoPeticion(id_peticion) {
+    if (!id_peticion) {
+        console.error("Error: Se necesita un ID de petición para comprobar su estado.");
+        return null;
+    }
+
+    try {
+        const { data, error } = await supabase
+            .from('Peticiones')
+            .select('estado')
+            .eq('id', id_peticion)
+            .single();
+
+        if (error) {
+            throw new Error(`Error de Supabase al comprobar el estado de la petición: ${error.message}`);
+        }
+
+        return data ? data.estado : null;
+
+    } catch (error) {
+        console.error("Error en la función comprobarEstadoPeticion:", error);
+        return null;
+    }
+}
+
+/**
  * Carga los datos iniciales del equipo desde la base de datos relacional de Supabase.
  * Esta versión está refactorizada para trabajar con tablas separadas.
  */
