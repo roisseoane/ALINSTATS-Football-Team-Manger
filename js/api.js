@@ -4,6 +4,28 @@ import { getState } from './state.js';
 import { supabase } from './supabaseClient.js';
 
 /**
+ * Obtiene la lista de todos los jugadores de un equipo específico.
+ * @param {number} team_pk_id - El ID numérico y permanente del equipo.
+ * @returns {Promise<Array<object>|null>} Un array con los jugadores del equipo o null si hay un error.
+ */
+export async function getJugadoresEquipo(team_pk_id) {
+    if (!team_pk_id) return null;
+    try {
+        const { data: jugadores, error } = await supabase
+            .from('Jugadors')
+            .select('*')
+            .eq('id_equip', team_pk_id);
+
+        if (error) throw new Error(error.message);
+        return jugadores;
+
+    } catch (error) {
+        console.error("Error al obtener los jugadores del equipo:", error);
+        return null;
+    }
+}
+
+/**
  * Verifica en la base de datos si un jugador todavía existe y pertenece a un equipo.
  * Esta es la comprobación de seguridad clave en cada arranque de la aplicación.
  * @param {number} team_pk_id - El ID numérico y permanente del equipo.
