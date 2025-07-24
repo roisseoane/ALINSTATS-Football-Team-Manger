@@ -4,6 +4,88 @@ import { getState } from './state.js';
 import { supabase } from './supabaseClient.js';
 
 /**
+ * Crea un nuevo equipo y, acto seguido, crea un perfil de jugador para el usuario
+ * autenticado, asignándolo como el primer miembro de ese equipo.
+ * @param {object} user - El objeto 'user' de Supabase Auth.
+ * @param {string} nombreEquipo - El nombre que el usuario ha elegido para el equipo.
+ * @param {string} idUsuarioEquipo - El ID público que el equipo usará.
+ * @param {string} nombreJugador - El nombre que el usuario tendrá en el equipo.
+ * @returns {Promise<object|null>} El perfil del nuevo jugador o null si falla.
+ */
+export async function crearEquipoYAsignarCreador(user, nombreEquipo, idUsuarioEquipo, nombreJugador) {
+    try {
+        // Paso 1: Crear el equipo
+        const { data: nuevoEquipo, error: errorEquipo } = await supabase
+            .from('Equips')
+            .insert({ nom_equip: nombreEquipo, id_usuari_equip: idUsuarioEquipo })
+            .select()
+            .single();
+
+        if (errorEquipo) throw new Error(`Error al crear el equipo: ${errorEquipo.message}`);
+
+        // Paso 2: Crear el perfil del jugador y vincularlo al nuevo equipo y al usuario autenticado
+        const { data: nuevoJugador, error: errorJugador } = await supabase
+            .from('Jugadors')
+            .insert({
+                id_equip: nuevoEquipo.id,
+                user_id: user.id,
+                email: user.email,
+                nom_mostrat: nombreJugador
+            })
+            .select()
+            .single();
+
+        if (errorJugador) throw new Error(`Error al crear el perfil del jugador: ${errorJugador.message}`);
+
+        return nuevoJugador;
+
+    } catch (error) {
+        console.error("Error en el proceso de creación de equipo:", error);
+        alert("No s'ha pogut crear el nou equip.");
+        return null;
+    }
+}
+
+/**
+ * Busca un equipo por su ID público y, si lo encuentra, crea una petición
+ * para que el usuario autenticado se una a él.
+ * @param {object} user - El objeto 'user' de Supabase Auth.
+ * @param {string} idUsuarioEquipo - El ID público del equipo al que se quiere unir.
+ * @param {string} nombreJugador - El nombre que el solicitante tendrá en el equipo.
+ * @returns {Promise<object|null>} La nueva petición creada o null si falla.
+ */
+export async function solicitarUnionAEquipo(user, idUsuarioEquipo, nombreJugador) {
+    try {
+        // Paso 1: Encontrar el ID permanente del equipo a partir de su ID público
+        const { data: equipo, error: errorEquipo } = await supabase
+            .from('Equips')
+            .select('id')
+            .eq('id_usuari_equip', idUsuarioEquipo)
+            .single();
+
+        if (errorEquipo || !equipo) {
+            alert(`No s'ha trobat cap equip amb l'ID "${idUsuarioEquipo}".`);
+            return null;
+        }
+
+        // Paso 2: Crear la petición de unión usando la función que ya teníamos
+        const metadata = {
+            nombre_solicitante: nombreJugador,
+            user_id_solicitante: user.id, // Guardamos el user_id para vincularlo si se aprueba
+            email_solicitante: user.email
+        };
+        const nuevaPeticion = await crearPeticion(equipo.id, null, 'añadir_jugador', metadata);
+
+        return nuevaPeticion;
+
+    } catch (error) {
+        console.error("Error en la solicitud de unión:", error);
+        alert("No s'ha pogut enviar la sol·licitud d'unió.");
+        return null;
+    }
+}
+
+/**
  * Busca el perfil de un jugador en nuestra base de datos a partir de su user.id de Supabase Auth.
  * Esta función es clave para saber si un usuario autenticado ya es miembro de un equipo.
  * @param {object} user - El objeto 'user' que proporciona Supabase Auth en una sesión.
