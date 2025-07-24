@@ -128,6 +128,44 @@ export async function registrarVoto(id_peticion, id_votante, voto) {
 }
 
 /**
+ * Obtiene todas las peticiones pendientes de un equipo en las que un jugador específico aún no ha votado.
+ * Esta función es clave para mostrar los modales de votación al iniciar la aplicación.
+ * @param {number} id_equip - El ID del equipo.
+ * @param {number} id_jugador - El ID del jugador que está usando la aplicación.
+ * @returns {Promise<Array<object>|null>} Un array con las peticiones pendientes de voto, o null si hay un error.
+ */
+export async function obtenerPeticionesPendientes(id_equip, id_jugador) {
+    if (!id_equip || !id_jugador) {
+        console.error("Error: Se necesita el ID del equipo y del jugador para buscar peticiones pendientes.");
+        return null;
+    }
+
+    try {
+        // Esta es una consulta más avanzada. Hacemos un 'rpc' (Remote Procedure Call)
+        // a una función de la base de datos que crearemos para manejar esta lógica compleja.
+        // Es más eficiente y seguro que intentar hacer múltiples consultas desde el frontend.
+        const { data: peticiones, error } = await supabase.rpc('get_peticiones_para_votar', {
+            p_id_equip: id_equip,
+            p_id_jugador: id_jugador
+        });
+
+        if (error) {
+            throw new Error(`Error de Supabase al obtener peticiones pendientes: ${error.message}`);
+        }
+
+        if (peticiones && peticiones.length > 0) {
+            console.log(`El jugador ${id_jugador} tiene ${peticiones.length} peticion(es) pendiente(s) de voto.`);
+        }
+
+        return peticiones || []; // Devolvemos las peticiones encontradas o un array vacío.
+
+    } catch (error) {
+        console.error("Error en la función obtenerPeticionesPendientes:", error);
+        return null; // Devolvemos null para indicar que la operación falló.
+    }
+}
+
+/**
  * Carga los datos iniciales del equipo desde la base de datos relacional de Supabase.
  * Esta versión está refactorizada para trabajar con tablas separadas.
  */
