@@ -244,8 +244,8 @@ export async function comprobarEstadoPeticion(id_peticion) {
 
     try {
         const { data, error } = await supabase
-            .from('Peticiones')
-            .select('estado')
+            .from('Peticions')
+            .select('estat')
             .eq('id', id_peticion)
             .single();
 
@@ -253,7 +253,7 @@ export async function comprobarEstadoPeticion(id_peticion) {
             throw new Error(`Error de Supabase al comprobar el estado de la petición: ${error.message}`);
         }
 
-        return data ? data.estado : null;
+        return data ? data.estat : null;
 
     } catch (error) {
         console.error("Error en la función comprobarEstadoPeticion:", error);
