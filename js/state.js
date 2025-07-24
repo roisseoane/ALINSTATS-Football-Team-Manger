@@ -160,6 +160,7 @@ export function initElements() {
     state.elements.sections.alineacio = document.getElementById('section-alineacio');
     state.elements.sections.estadistiques = document.getElementById('section-estadistiques');
     state.elements.sections.clips = document.getElementById('section-clips');
+    state.elements.sections.configuracion = document.getElementById('section-configuracion');
     state.elements.stats.selector = document.getElementById('partit-selector');
     state.elements.stats.lista = document.getElementById('estadistiques-lista');
     state.elements.stats.addBtn = document.getElementById('add-match-btn');
@@ -172,6 +173,7 @@ export function initElements() {
     state.elements.nav.btnEstadistiques = document.getElementById('btn-estadistiques');
     state.elements.nav.btnAlineacio = document.getElementById('btn-alineacio');
     state.elements.nav.btnClips = document.getElementById('btn-clips');
+    state.elements.nav.btnConfiguracion = document.getElementById('btn-configuracion');
     state.elements.pizarra.controlsContainer = document.getElementById('pizarra-controls-container');
     state.elements.pizarra.creacionJugadaPanel = document.getElementById('creacion-jugada-panel');
     state.elements.pizarra.jugadasGuardadasPanel = document.getElementById('jugadas-guardadas-panel');
