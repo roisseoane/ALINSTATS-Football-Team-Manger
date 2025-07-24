@@ -232,9 +232,9 @@ export async function obtenerPeticionesPendientes(id_equip, id_jugador) {
 
 /**
  * Comprueba el estado actual de una petición específica en la base de datos.
- * Esencial para el flujo de un nuevo aspirante que espera la aprobación del equipo.
+ * VERSIÓN REFACTORIZADA para evitar el error 406 al usar .single().
  * @param {number} id_peticion - El ID de la petición cuyo estado se quiere consultar.
- * @returns {Promise<string|null>} El estado de la petición (ej: "pendiente", "aprobada") o null si hay un error.
+ * @returns {Promise<object|null>} Un objeto con los datos de la petición (incluido el estado) o null si hay un error/no se encuentra.
  */
 export async function comprobarEstadoPeticion(id_peticion) {
     if (!id_peticion) {
@@ -243,17 +243,24 @@ export async function comprobarEstadoPeticion(id_peticion) {
     }
 
     try {
-        const { data, error } = await supabase
+        // Hacemos la petición sin .single(), pedimos todos los datos.
+        const { data: peticiones, error } = await supabase
             .from('Peticions')
-            .select('estat')
-            .eq('id', id_peticion)
-            .single();
+            .select('*') // Pedimos todos los datos, no solo el estado, por si los necesitamos
+            .eq('id', id_peticion);
 
         if (error) {
             throw new Error(`Error de Supabase al comprobar el estado de la petición: ${error.message}`);
         }
 
-        return data ? data.estat : null;
+        // Si la consulta devuelve exactamente una petición, la retornamos.
+        // Esto es más robusto que usar .single().
+        if (peticiones && peticiones.length === 1) {
+            return peticiones[0];
+        }
+
+        // Si no se encuentra la petición, devolvemos null.
+        return null;
 
     } catch (error) {
         console.error("Error en la función comprobarEstadoPeticion:", error);
