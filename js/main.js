@@ -71,7 +71,12 @@ export function inicializarUIPrincipal() {
     elements.nav.btnEstadistiques.addEventListener('click', () => activarTab('estadistiques'));
     elements.nav.btnAlineacio.addEventListener('click', () => activarTab('alineacio'));
     elements.nav.btnClips.addEventListener('click', () => activarTab('clips'));
-    // ... (añade aquí los listeners de los otros botones que faltan, como el de configuración)
+    elements.nav.btnConfiguracion.addEventListener('click', () => activarTab('configuracion'));
+    elements.modal.backdrop.addEventListener('click', cerrarModal);
+
+    if (elements.togglePizarraBtn) {
+        elements.togglePizarraBtn.addEventListener('click', togglePizarraTactical);
+    }
 
     renderizarCarrusel();
     renderizarAlineacion(generarMejorAlineacion(jugadoresDisponibles, habilidadPorPosicion));
