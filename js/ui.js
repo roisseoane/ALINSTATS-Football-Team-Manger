@@ -69,6 +69,8 @@ function renderizarContenidoConfiguracion() {
     document.querySelectorAll('.btn-eliminar-jugador').forEach(button => {
         button.addEventListener('click', handleRemovePlayerRequest);
     });
+
+    document.getElementById('form-change-team-id').addEventListener('submit', handleChangeTeamIdRequest);
 }
 
 /**
