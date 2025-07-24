@@ -197,6 +197,36 @@ export async function comprobarEstadoPeticion(id_peticion) {
 }
 
 /**
+ * Llama a una función en la base de datos para procesar el resultado de una petición después de un voto.
+ * La función RPC en Supabase se encargará de contar los votos, comprobar el consenso y ejecutar la acción si es necesario.
+ * @param {number} id_peticion - El ID de la petición que se debe procesar.
+ * @returns {Promise<object|null>} Devuelve un objeto con el resultado del procesamiento o null si hay un error.
+ */
+export async function ejecutarAccionPostVoto(id_peticion) {
+    if (!id_peticion) {
+        console.error("Error: Se necesita un ID de petición para procesar el post-voto.");
+        return null;
+    }
+
+    try {
+        const { data: resultado, error } = await supabase.rpc('procesar_peticion_post_voto', {
+            p_id_peticion: id_peticion
+        });
+
+        if (error) {
+            throw new Error(`Error de Supabase al ejecutar la acción post-voto: ${error.message}`);
+        }
+
+        console.log(`Resultado del procesamiento de la petición ${id_peticion}:`, resultado);
+        return resultado;
+
+    } catch (error) {
+        console.error("Error en la función ejecutarAccionPostVoto:", error);
+        return null;
+    }
+}
+
+/**
  * Carga los datos iniciales del equipo desde la base de datos relacional de Supabase.
  * Esta versión está refactorizada para trabajar con tablas separadas.
  */
