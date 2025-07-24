@@ -3,7 +3,8 @@ import {
     validarSesionJugador,
     obtenerPeticionesPendientes,
     comprobarEstadoPeticion,
-    cargarDatosDelEquipo } from './api.js';
+    cargarDatosDelEquipo,
+    getEquipoPorIdUsuario} from './api.js';
 
 import {
     // Estas funciones de UI aún no existen, las crearemos en el siguiente paso
@@ -18,6 +19,46 @@ import { inicializarEstado } from './state.js';
 import { inicializarUIPrincipal } from './main.js';
 
 // --- FUNCIONES ---
+
+// js/auth.js
+
+/**
+ * Maneja el envío del formulario de login de equipo.
+ * Valida el ID del equipo y, si es correcto, avanza al siguiente paso (login de jugador).
+ * @param {Event} e - El evento del formulario.
+ */
+export async function handleTeamLoginSubmit(e) {
+    e.preventDefault(); // Prevenimos que la página se recargue
+    const teamIdInput = document.getElementById('team-id-input');
+    const idUsuarioEquipo = teamIdInput.value.trim();
+
+    if (!idUsuarioEquipo) {
+        alert("Si us plau, introdueix l'ID de l'equip.");
+        return;
+    }
+
+    // Llamamos a la API para obtener el equipo con ese ID público
+    const equipo = await getEquipoPorIdUsuario(idUsuarioEquipo);
+
+    if (equipo) {
+        // ¡Equipo encontrado! Guardamos su ID permanente y avanzamos
+        localStorage.setItem('team_pk_id', equipo.id);
+        localStorage.setItem('id_usuari_equip', equipo.id_usuari_equip); // Guardamos también el público por si es útil
+
+        // Pasamos al siguiente modal: pedir el nombre del jugador
+        mostrarLoginDeJugador(equipo);
+
+    } else {
+        // El equipo no existe. Podríamos ofrecer crearlo aquí.
+        const crear = confirm(`L'equip amb l'ID "${idUsuarioEquipo}" no existeix. Vols crear-lo?`);
+        if (crear) {
+            // Aquí iría la lógica para crear un nuevo equipo,
+            // que también es una petición grupal si ya hay gente...
+            // Por ahora, lo dejamos simple.
+            console.log("TODO: Implementar flujo de creación de equipo.");
+        }
+    }
+}
 
 /**
  * El punto de entrada principal de la aplicación.
