@@ -13,9 +13,46 @@ import { guardarDatosEnSupabase } from './api.js';
 import { mostrarGraficasJugador } from './charts.js';
 import { guardarEstadisticasPartido,
          getJugadoresEquipo} from './api.js';
-import { handleTeamLoginSubmit } from './auth.js';
+import { handleTeamLoginSubmit,
+         handleCheckStatus,
+         handleCancelRequest } from './auth.js';
 
 // Utility Functions
+
+/**
+ * Muestra una pantalla de espera para los usuarios cuya solicitud de unión está pendiente.
+ * @param {object} peticion - El objeto de la petición pendiente.
+ */
+export function mostrarPantallaDeEspera(peticion) {
+    const { elements } = getState();
+    const nombreSolicitante = peticion.metadata.nombre_solicitante;
+
+    const modalContent = `
+        <div class="modal-header">
+            <h2><i class="fas fa-hourglass-half"></i> Sol·licitud Pendent</h2>
+            <p class="modal-subtitle">Hola, ${nombreSolicitante}. La teva sol·licitud per unir-te a l'equip està sent votada.</p>
+        </div>
+        <div class="espera-info">
+            <p>Rebràs accés a l'aplicació un cop tots els membres de l'equip hagin acceptat la teva sol·licitud.</p>
+            <p>Pots tancar aquesta pàgina de manera segura i tornar més tard.</p>
+        </div>
+        <div class="form-actions">
+            <button id="btn-check-status" class="btn-primary" data-peticion-id="${peticion.id}">
+                <i class="fas fa-sync-alt"></i> Comprovar Estat
+            </button>
+            <button id="btn-cancel-request" class="btn-secondary" data-peticion-id="${peticion.id}">
+                <i class="fas fa-times"></i> Cancel·lar Sol·licitud
+            </button>
+        </div>
+    `;
+
+    elements.modal.content.innerHTML = modalContent;
+    abrirModal(); // Aseguramos que el modal se muestre
+
+    // Añadimos los listeners a los botones
+    document.getElementById('btn-check-status').addEventListener('click', handleCheckStatus);
+    document.getElementById('btn-cancel-request').addEventListener('click', handleCancelRequest);
+}
 
 /**
  * Muestra el segundo modal del flujo de login, permitiendo al usuario
