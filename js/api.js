@@ -113,19 +113,24 @@ export async function crearPeticion(id_equip, id_creador, tipo, metadata) {
     }
 
     try {
+        // 1. Preparamos el objeto que vamos a insertar
+        const datosAInsertar = {
+            id_equip: id_equip,
+            id_creador: id_creador,
+            tipo: tipo,
+            metadata: metadata,
+            estat: 'pendiente' // Usando 'estat' como confirmamos
+        };
+
+        // 2. Lo mostramos en la consola para depurar
+        console.log("Intentando insertar en Peticions:", datosAInsertar);
+
+        // 3. Hacemos la llamada a la base de datos con el objeto que hemos preparado
         const { data: nuevaPeticion, error } = await supabase
             .from('Peticions')
-            .insert([
-                {
-                    id_equip: id_equip,
-                    id_creador: id_creador,
-                    tipo: tipo,
-                    metadata: metadata,
-                    estat: 'pendiente' // Todas las peticiones empiezan como pendientes
-                }
-            ])
-            .select() // Devuelve la fila recién creada
-            .single(); // Devuelve un objeto, no un array
+            .insert([datosAInsertar]) // Usamos la variable que acabamos de crear
+            .select()
+            .single();
 
         if (error) {
             throw new Error(`Error de Supabase al crear la petición: ${error.message}`);
