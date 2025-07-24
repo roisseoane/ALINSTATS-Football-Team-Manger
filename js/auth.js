@@ -18,10 +18,51 @@ import {
     mostrarErrorDeSesionYLimpiarStorage,
     cerrarModal } from './ui.js';
 
-import { inicializarEstado } from './state.js';
+import { inicializarEstado,
+         getState } from './state.js';
 import { inicializarUIPrincipal } from './main.js';
 
 // --- FUNCIONES ---
+
+/**
+ * Maneja el clic en el botón "Eliminar" de un jugador.
+ * Inicia una petición grupal para eliminar al jugador seleccionado.
+ * @param {Event} e - El evento del clic.
+ */
+export async function handleRemovePlayerRequest(e) {
+    const button = e.currentTarget;
+    const playerIdToRemove = button.dataset.playerId;
+    const playerNameToRemove = button.dataset.playerName;
+
+    const confirmacion = confirm(`Estàs segur que vols iniciar una votació per eliminar a ${playerNameToRemove}? Aquesta acció no es pot desfer.`);
+
+    if (confirmacion) {
+        const { team_pk_id, currentUser } = getState();
+
+        const metadata = {
+            id_jugador_objetivo: playerIdToRemove,
+            nombre_jugador_objetivo: playerNameToRemove
+        };
+
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creant...';
+
+        // Llamamos a la función de la API que ya habíamos construido
+        const nuevaPeticion = await crearPeticion(team_pk_id, currentUser.player_pk_id, 'eliminar_jugador', metadata);
+
+        if (nuevaPeticion) {
+            alert(`S'ha creat la petició per eliminar a ${playerNameToRemove}. La resta de l'equip ha de votar ara.`);
+            // Podríamos redirigir o simplemente dejar que el usuario siga navegando.
+            // Por ahora, reactivamos el botón.
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-user-minus"></i> Eliminar';
+        } else {
+            alert("Hi ha hagut un error en crear la petició.");
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-user-minus"></i> Eliminar';
+        }
+    }
+}
 
 /**
  * Maneja el envío de un voto desde el modal de votación.
