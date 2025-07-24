@@ -5,7 +5,9 @@ import {
     comprobarEstadoPeticion,
     cargarDatosDelEquipo,
     getEquipoPorIdUsuario,
-    crearPeticion } from './api.js';
+    crearPeticion,
+    registrarVoto,
+    ejecutarAccionPostVoto } from './api.js';
 
 import {
     // Estas funciones de UI aún no existen, las crearemos en el siguiente paso
@@ -20,6 +22,41 @@ import { inicializarEstado } from './state.js';
 import { inicializarUIPrincipal } from './main.js';
 
 // --- FUNCIONES ---
+
+/**
+ * Maneja el envío de un voto desde el modal de votación.
+ * Registra el voto y desencadena el procesamiento de la petición.
+ * @param {Event} e - El evento del clic del botón.
+ */
+export async function handleVoteSubmit(e) {
+    const button = e.currentTarget;
+    const peticionId = button.dataset.peticionId;
+    const voto = button.dataset.voto === 'true'; // Convertimos el string 'true'/'false' a booleano
+    const { player_pk_id } = getState().currentUser; // Asumimos que el ID del jugador está en el estado
+
+    button.disabled = true; // Deshabilitamos el botón para evitar clics duplicados
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Votant...';
+
+    // 1. Registramos el voto en la base de datos
+    const exitoVoto = await registrarVoto(peticionId, player_pk_id, voto);
+
+    if (exitoVoto) {
+        // 2. Si el voto se registró, le pedimos al servidor que procese la petición
+        // (contar votos, comprobar consenso, ejecutar acción si es necesario)
+        const resultadoProceso = await ejecutarAccionPostVoto(peticionId);
+
+        if (resultadoProceso) {
+            alert("El teu vot ha estat registrat correctament.");
+            // Si la petición fue aprobada y ejecutada, la recarga lo reflejará.
+            // Si sigue pendiente, la recarga mostrará la app o la siguiente petición.
+            window.location.reload();
+        }
+    } else {
+        alert("Hi ha hagut un error en registrar el teu vot.");
+        button.disabled = false; // Reactivamos el botón si hubo un error
+        button.innerHTML = voto ? '<i class="fas fa-check"></i> Acceptar' : '<i class="fas fa-times"></i> Denegar';
+    }
+}
 
 /**
  * Maneja el evento de clic del botón "Comprovar Estat".
