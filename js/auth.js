@@ -19,94 +19,75 @@ import { inicializarUIPrincipal } from './main.js';
 
 // --- FUNCIONES ---
 
-// Esta función se encarga de manejar el envío del formulario del modal
-async function handleTeamIdSubmit(event) {
-    event.preventDefault();
-    const teamIdInput = document.getElementById('team-id-input');
-    const teamId = teamIdInput.value.trim();
+/**
+ * El punto de entrada principal de la aplicación.
+ * Orquesta el flujo de autenticación y decide qué se muestra al usuario.
+ */
 
-    if (!teamId) {
-        alert('Por favor, introduce un ID de equipo.');
-        return;
-    }
+async function iniciarFlujoDeAutenticacion() {
+    // 1. Leemos los IDs permanentes del localStorage
+    const team_pk_id = localStorage.getItem('team_pk_id');
+    const player_pk_id = localStorage.getItem('player_pk_id');
+    const id_peticion_pendiente = localStorage.getItem('id_peticion_pendiente');
 
-    const { data, error } = await supabase
-        .from('Equips')
-        .select('*')
-        .eq('id_usuari_equip', teamId);
+    console.log("Iniciando flujo de autenticación...", { team_pk_id, player_pk_id, id_peticion_pendiente });
 
-    if (error) {
-        console.error('Error fetching team:', error);
-        alert('Hubo un error al verificar el equipo.');
-        return;
-    }
+    // CASO 1: El usuario tiene una petición de unión pendiente
+    if (id_peticion_pendiente) {
+        console.log("Se detectó una petición pendiente. Comprobando estado...");
+        const estado = await comprobarEstadoPeticion(id_peticion_pendiente);
 
-    if (data && data.length > 0) {
-        // El equipo existe, guardamos el ID y cargamos la app
-        localStorage.setItem('id_usuari_equip', teamId);
-        const datosIniciales = await cargarDatosDelEquipo(data[0].id);
-        inicializarEstado(datosIniciales);
-        inicializarUIPrincipal();
-        cerrarModal(); // Cierra el modal de ID
-    } else {
-        // El equipo no existe, preguntamos si quiere crear uno nuevo
-        const teamName = prompt('Este ID de equipo no existe. Introduce el nombre de tu equipo para crear uno nuevo:');
-        if (teamName) {
-            const { data: newTeam, error: newTeamError } = await supabase
-                .from('Equips')
-                .insert([{ id_usuari_equip: teamId, nom_equip: teamName }])
-                .select();
+        if (estado === 'aprobada') {
+            // ¡Felicidades! La petición fue aprobada.
+            // Aquí deberíamos ejecutar la lógica para finalizar el alta del jugador,
+            // obtener su nuevo player_pk_id, guardarlo y limpiar la petición pendiente.
+            // Por ahora, lo dejamos pendiente para implementarlo junto con la UI.
+            console.log("¡Tu solicitud fue aprobada! Implementar lógica de login final.");
+            // TODO: Llamar a una función que finalice el alta, actualice localStorage y recargue la app.
 
-            if (newTeamError) {
-                console.error('Error creating new team:', newTeamError);
-                alert('Hubo un error al crear el nuevo equipo.');
-                return;
-            }
-
-            if (newTeam && newTeam.length > 0) {
-                localStorage.setItem('id_usuari_equip', teamId);
-                const datosIniciales = await cargarDatosDelEquipo(newTeam[0].id);
-                inicializarEstado(datosIniciales);
-                inicializarUIPrincipal();
-                cerrarModal(); // Cierra el modal de ID
-            }
-        }
-    }
-}
-
-// Esta función comprueba si ya existe un ID en localStorage al cargar la página
-async function checkTeamIdOnLoad() {
-    const teamId = localStorage.getItem('id_usuari_equip');
-    console.log("Iniciando verificación. ID de equipo en localStorage:", teamId);
-
-    if (teamId) {
-        console.log("ID encontrado. Intentando cargar datos del equipo desde Supabase...");
-        const { data, error } = await supabase
-            .from('Equips')
-            .select('*')
-            .eq('id_usuari_equip', teamId);
-
-        if (error || !data || data.length === 0) {
-            console.error("Error al verificar el ID o el ID no es válido en Supabase:", error);
-            localStorage.removeItem('id_usuari_equip');
-            mostrarModalID();
+        } else if (estado === 'rechazada') {
+            alert("Tu solicitud para unirte al equipo ha sido rechazada.");
+            localStorage.removeItem('id_peticion_pendiente');
+            mostrarLoginDeEquipo(); // Vuelve al inicio
         } else {
-            console.log("ID válido. Cargando datos del equipo...");
-            const datosIniciales = await cargarDatosDelEquipo(data[0].id);
+            // Sigue pendiente
+            mostrarPantallaDeEspera(id_peticion_pendiente);
+        }
+        return; // Detenemos el flujo aquí
+    }
 
-            if (datosIniciales) {
-                console.log("Datos del equipo cargados. Inicializando estado y UI principal.");
+    // CASO 2: El usuario tiene credenciales de sesión guardadas
+    if (team_pk_id && player_pk_id) {
+        console.log("Se detectaron credenciales de sesión. Validando...");
+        const esValido = await validarSesionJugador(team_pk_id, player_pk_id);
+
+        if (esValido) {
+            console.log("Sesión válida.");
+            // La sesión es correcta, ahora comprobamos si tiene que votar
+            const peticiones = await obtenerPeticionesPendientes(team_pk_id, player_pk_id);
+
+            if (peticiones && peticiones.length > 0) {
+                // Si hay peticiones, las mostramos antes de cargar la app
+                console.log(`Mostrando ${peticiones.length} modales de votación.`);
+                mostrarModalDeVotacion(peticiones); // Esta función de UI deberá gestionar múltiples peticiones
+            } else {
+                // Si no hay nada que votar, cargamos la aplicación principal
+                console.log("No hay peticiones pendientes. Cargando UI principal.");
+                const datosIniciales = await cargarDatosDelEquipo(team_pk_id); // Asumimos que cargarDatosDelEquipo usa el pk_id
                 inicializarEstado(datosIniciales);
                 inicializarUIPrincipal();
-            } else {
-                console.error("Fallo al cargar los datos iniciales del equipo. Mostrando modal de ID.");
-                mostrarModalID();
             }
+        } else {
+            // La sesión no es válida (el jugador fue eliminado)
+            console.warn("Sesión inválida detectada. Limpiando localStorage.");
+            mostrarErrorDeSesionYLimpiarStorage();
         }
-    } else {
-        console.log("No se encontró ID de equipo. Mostrando modal de ID.");
-        mostrarModalID();
+        return; // Detenemos el flujo aquí
     }
+
+    // CASO 3: El usuario no tiene ninguna credencial guardada
+    console.log("No se encontraron credenciales. Mostrando login de equipo.");
+    mostrarLoginDeEquipo();
 }
 
 
@@ -114,12 +95,6 @@ async function checkTeamIdOnLoad() {
 
 // Espera a que todo el HTML esté cargado antes de ejecutar cualquier script
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Asigna el listener al formulario del modal
-    const form = document.getElementById('team-id-form');
-    if (form) {
-        form.addEventListener('submit', handleTeamIdSubmit);
-    }
-
-    // 2. Comprueba si el usuario ya está "logueado"
-    checkTeamIdOnLoad();
+    // La única línea que se ejecuta al inicio. Todo lo demás es una consecuencia de esta llamada.
+    iniciarFlujoDeAutenticacion();
 });
