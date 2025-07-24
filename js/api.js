@@ -4,108 +4,6 @@ import { getState } from './state.js';
 import { supabase } from './supabaseClient.js';
 
 /**
- * Cuenta el número de jugadores en un equipo específico.
- * @param {number} team_pk_id - El ID permanente del equipo.
- * @returns {Promise<number|null>} El número de jugadores o null si hay un error.
- */
-export async function getNumeroDeJugadores(team_pk_id) {
-    if (!team_pk_id) return null;
-    try {
-        const { count, error } = await supabase
-            .from('Jugadors')
-            .select('*', { count: 'exact', head: true }) // 'head:true' hace que no devuelva datos, solo el conteo. Es muy eficiente.
-            .eq('id_equip', team_pk_id);
-
-        if (error) throw new Error(error.message);
-        return count;
-
-    } catch (error) {
-        console.error("Error al contar los jugadores del equipo:", error);
-        return null;
-    }
-}
-
-/**
- * Añade un jugador directamente a un equipo, sin pasar por el sistema de peticiones.
- * Se usa para el primer miembro de un equipo.
- * @param {number} team_pk_id - El ID del equipo.
- * @param {string} nombreJugador - El nombre del nuevo jugador.
- * @returns {Promise<object|null>} El objeto del nuevo jugador creado o null si hay un error.
- */
-/**
- * Añade un jugador directamente a un equipo, sin pasar por el sistema de peticiones.
- * Se usa para el primer miembro de un equipo.
- * VERSIÓN REFACTORIZADA para evitar el uso de .single().
- * @param {number} team_pk_id - El ID del equipo.
- * @param {string} nombreJugador - El nombre del nuevo jugador.
- * @returns {Promise<object|null>} El objeto del nuevo jugador creado o null si hay un error.
- */
-export async function añadirJugadorDirectamente(team_pk_id, nombreJugador) {
-    if (!team_pk_id || !nombreJugador) return null;
-    try {
-        // Hacemos el INSERT y pedimos que nos devuelva la fila insertada, sin .single()
-        const { data: nuevosJugadores, error } = await supabase
-            .from('Jugadors')
-            .insert({ id_equip: team_pk_id, nom_mostrat: nombreJugador })
-            .select();
-
-        if (error) {
-            throw new Error(error.message);
-        }
-
-        // Manejamos la lógica en nuestro código: si la inserción fue exitosa,
-        // la base de datos nos devolverá un array con el nuevo jugador.
-        if (nuevosJugadores && nuevosJugadores.length === 1) {
-            return nuevosJugadores[0]; // Devolvemos el objeto del jugador
-        }
-
-        // Si por alguna razón no se devuelve el jugador, consideramos que falló.
-        return null;
-
-    } catch (error) {
-        console.error("Error al añadir jugador directamente:", error);
-        return null;
-    }
-}
-/**
- * Crea un nuevo equipo y añade a su primer jugador.
- * Esta función es crítica para el flujo de registro inicial.
- * @param {string} idUsuarioEquipo - El ID público que el equipo usará para el login.
- * @param {string} nombreEquipo - El nombre completo del nuevo equipo.
- * @param {string} nombrePrimerJugador - El nombre del jugador que está creando el equipo.
- * @returns {Promise<object|null>} Un objeto con los datos del nuevo equipo y del nuevo jugador, o null si falla.
- */
-export async function crearNuevoEquipoConPrimerJugador(idUsuarioEquipo, nombreEquipo, nombrePrimerJugador) {
-    try {
-        // Paso 1: Crear el equipo
-        const { data: nuevoEquipo, error: errorEquipo } = await supabase
-            .from('Equips')
-            .insert({ id_usuari_equip: idUsuarioEquipo, nom_equip: nombreEquipo })
-            .select()
-            .single();
-
-        if (errorEquipo) throw new Error(`Error al crear el equipo: ${errorEquipo.message}`);
-
-        // Paso 2: Añadir al primer jugador usando el ID del equipo recién creado
-        const { data: nuevoJugador, error: errorJugador } = await supabase
-            .from('Jugadors')
-            .insert({ id_equip: nuevoEquipo.id, nom_mostrat: nombrePrimerJugador })
-            .select()
-            .single();
-
-        if (errorJugador) throw new Error(`Error al añadir al primer jugador: ${errorJugador.message}`);
-
-        console.log("Equipo y primer jugador creados con éxito.");
-        return { equipo: nuevoEquipo, jugador: nuevoJugador };
-
-    } catch (error) {
-        console.error("Error en la función crearNuevoEquipoConPrimerJugador:", error);
-        alert("No se pudo completar el registro del nuevo equipo.");
-        return null;
-    }
-}
-
-/**
  * Obtiene la lista de todos los jugadores de un equipo específico.
  * @param {number} team_pk_id - El ID numérico y permanente del equipo.
  * @returns {Promise<Array<object>|null>} Un array con los jugadores del equipo o null si hay un error.
@@ -127,39 +25,7 @@ export async function getJugadoresEquipo(team_pk_id) {
     }
 }
 
-/**
- * Verifica en la base de datos si un jugador todavía existe y pertenece a un equipo.
- * Esta es la comprobación de seguridad clave en cada arranque de la aplicación.
- * @param {number} team_pk_id - El ID numérico y permanente del equipo.
- * @param {number} player_pk_id - El ID numérico y permanente del jugador.
- * @returns {Promise<boolean>} Devuelve true si la sesión es válida, false en caso contrario.
- */
-export async function validarSesionJugador(team_pk_id, player_pk_id) {
-    // Si por alguna razón no tenemos los IDs, la sesión no es válida.
-    if (!team_pk_id || !player_pk_id) {
-        return false;
-    }
 
-    try {
-        const { data, error, count } = await supabase
-            .from('Jugadors')
-            .select('id', { count: 'exact' }) // Solo necesitamos saber si existe, count es muy eficiente.
-            .eq('id', player_pk_id)
-            .eq('id_equip', team_pk_id);
-
-        if (error) {
-            console.error("Error al validar la sesión del jugador:", error.message);
-            return false;
-        }
-
-        // Si el conteo de filas que coinciden es 1, el jugador es válido. Si es 0, ha sido eliminado.
-        return count === 1;
-
-    } catch (error) {
-        console.error("Error inesperado en la función validarSesionJugador:", error);
-        return false;
-    }
-}
 
 /**
  * Crea una nueva petición en la tabla 'Peticiones'.
@@ -358,41 +224,6 @@ export async function ejecutarAccionPostVoto(id_peticion) {
 
     } catch (error) {
         console.error("Error en la función ejecutarAccionPostVoto:", error);
-        return null;
-    }
-}
-
-/**
- * Busca y devuelve un equipo basado en su ID de usuario público (el que no es numérico).
- * VERSIÓN REFACTORIZADA para evitar el error 406.
- * @param {string} idUsuarioEquipo - El ID público del equipo.
- * @returns {Promise<object|null>} El objeto del equipo o null si no se encuentra.
- */
-export async function getEquipoPorIdUsuario(idUsuarioEquipo) {
-    try {
-        // Hacemos la petición sin .single()
-        const { data: equipos, error } = await supabase
-            .from('Equips')
-            .select('*')
-            .eq('id_usuari_equip', idUsuarioEquipo);
-
-        // Si hay un error de red o de base de datos, lo lanzamos.
-        if (error) {
-            throw new Error(error.message);
-        }
-
-        // Ahora, manejamos la lógica de "single" en nuestro código.
-        // Si la lista tiene exactamente un equipo, lo devolvemos.
-        if (equipos && equipos.length === 1) {
-            return equipos[0];
-        }
-
-        // Si la lista tiene más de uno (no debería pasar si el ID es único) o está vacía,
-        // consideramos que no se ha encontrado un resultado válido.
-        return null;
-
-    } catch (error) {
-        console.error("Error al buscar equipo por ID de usuario:", error);
         return null;
     }
 }
