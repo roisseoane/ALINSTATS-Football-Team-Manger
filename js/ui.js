@@ -12,6 +12,8 @@ import { generarMejorAlineacion } from './core.js';
 import { mostrarGraficasJugador } from './charts.js';
 import { guardarEstadisticasPartido,
          getJugadoresEquipo} from './api.js';
+import { crearEquipoYAsignarCreador, solicitarUnionAEquipo } from './api.js';
+
 import { handleTeamLoginSubmit,
          handleCheckStatus,
          handleCancelRequest,
@@ -25,16 +27,13 @@ import { handleTeamLoginSubmit,
 
 /**
  * Muestra una pantalla de bienvenida a los usuarios autenticados que aún no tienen un perfil.
- * Les ofrece las opciones para crear un equipo o unirse a uno existente.
+ * VERSIÓN FINAL con formularios y lógica.
  * @param {object} user - El objeto 'user' de Supabase Auth.
  */
 export function mostrarPantallaDeBienvenida(user) {
     const { elements } = getState();
 
-    // Ocultamos las secciones principales de la app
-    document.querySelector('main').classList.remove('visible');
-    document.querySelector('.carrusel-container').classList.remove('visible');
-    document.querySelector('.button-container').classList.remove('visible');
+    // ... (código para ocultar las secciones principales)
 
     const modalContent = `
         <div class="modal-header">
@@ -44,16 +43,36 @@ export function mostrarPantallaDeBienvenida(user) {
         <div class="onboarding-options">
             <div class="config-card">
                 <h3><i class="fas fa-users-cog"></i> Crear un nou equip</h3>
-                <p>Crea un nou equip des de zero i converteix-te en el seu primer membre.</p>
+                <p>Crea un nou equip i converteix-te en el seu primer membre.</p>
                 <form id="form-create-team">
-                    <button type="submit" class="btn-primary">Crear Equip</button>
+                    <div class="form-group">
+                        <label for="new-team-name">Nom de l'Equip</label>
+                        <input type="text" id="new-team-name" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-team-id">ID Públic de l'Equip (secret)</label>
+                        <input type="text" id="new-team-id" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="creator-player-name">El teu Nom de Jugador</label>
+                        <input type="text" id="creator-player-name" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Crear i Entrar</button>
                 </form>
             </div>
             <div class="config-card">
                 <h3><i class="fas fa-search-location"></i> Unir-se a un equip existent</h3>
                 <p>Si ja tens un ID d'equip, introdueix-lo aquí per sol·licitar unir-te.</p>
                 <form id="form-join-team">
-                    <button type="submit" class="btn-secondary">Unir-se a Equip</button>
+                    <div class="form-group">
+                        <label for="join-team-id">ID de l'Equip</label>
+                        <input type="text" id="join-team-id" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="join-player-name">El teu Nom de Jugador</label>
+                        <input type="text" id="join-player-name" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn-secondary">Sol·licitar Unir-se</button>
                 </form>
             </div>
         </div>
@@ -62,7 +81,38 @@ export function mostrarPantallaDeBienvenida(user) {
     elements.modal.content.innerHTML = modalContent;
     abrirModal();
 
-    // TODO: Añadir los listeners a los formularios 'form-create-team' y 'form-join-team'
+    // --- LÓGICA DE LOS FORMULARIOS ---
+
+    // Manejador para CREAR EQUIPO
+    document.getElementById('form-create-team').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nombreEquipo = document.getElementById('new-team-name').value.trim();
+        const idUsuarioEquipo = document.getElementById('new-team-id').value.trim();
+        const nombreJugador = document.getElementById('creator-player-name').value.trim();
+
+        if (nombreEquipo && idUsuarioEquipo && nombreJugador) {
+            const nuevoPerfil = await crearEquipoYAsignarCreador(user, nombreEquipo, idUsuarioEquipo, nombreJugador);
+            if (nuevoPerfil) {
+                alert("Equip creat amb èxit! Benvingut.");
+                window.location.reload(); // Recargamos para que el flujo de auth detecte la nueva sesión
+            }
+        }
+    });
+
+    // Manejador para UNIRSE A EQUIPO
+    document.getElementById('form-join-team').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const idUsuarioEquipo = document.getElementById('join-team-id').value.trim();
+        const nombreJugador = document.getElementById('join-player-name').value.trim();
+
+        if (idUsuarioEquipo && nombreJugador) {
+            const nuevaPeticion = await solicitarUnionAEquipo(user, idUsuarioEquipo, nombreJugador);
+            if (nuevaPeticion) {
+                // Lo llevamos a la pantalla de espera
+                mostrarPantallaDeEspera(nuevaPeticion);
+            }
+        }
+    });
 }
 
 /**
