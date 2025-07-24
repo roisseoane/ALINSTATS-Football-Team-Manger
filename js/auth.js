@@ -22,6 +22,41 @@ import { inicializarUIPrincipal } from './main.js';
 // --- FUNCIONES ---
 
 /**
+ * Maneja el evento de clic del botón "Comprovar Estat".
+ * Vuelve a ejecutar el flujo de autenticación para obtener el estado más reciente.
+ * @param {Event} e - El evento del clic.
+ */
+export async function handleCheckStatus(e) {
+    const peticionId = e.target.dataset.peticionId;
+    console.log(`Comprobando estado de la petición ${peticionId}...`);
+
+    // La forma más sencilla y robusta de comprobar es simplemente recargar la aplicación.
+    // El 'iniciarFlujoDeAutenticacion' se encargará de todo el trabajo sucio.
+    window.location.reload();
+}
+
+/**
+ * Maneja el evento de clic del botón "Cancel·lar Sol·licitud".
+ * TODO: Esta función necesitaría una nueva función en api.js para cambiar
+ * el estado de la petición a "cancelada" o borrarla. Por ahora, limpia el localStorage.
+ * @param {Event} e - El evento del clic.
+ */
+export function handleCancelRequest(e) {
+    if (confirm("Estàs segur que vols cancel·lar la teva sol·licitud per unir-te a l'equip?")) {
+        const peticionId = e.target.dataset.peticionId;
+        console.log(`Cancelando petición ${peticionId}...`);
+
+        // Borramos la petición pendiente del localStorage para que pueda empezar de nuevo.
+        localStorage.removeItem('id_peticion_pendiente');
+        
+        // TODO: En un futuro, llamar a api.js para actualizar el estado en la base de datos a 'cancelada'.
+        
+        alert("La teva sol·licitud ha estat cancel·lada.");
+        window.location.reload();
+    }
+}
+
+/**
  * Maneja la selección de un jugador existente de la lista.
  * Guarda las credenciales en localStorage y reinicia el flujo de autenticación.
  * @param {number} team_pk_id - El ID permanente del equipo.
