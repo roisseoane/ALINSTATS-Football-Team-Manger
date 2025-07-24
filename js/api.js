@@ -4,6 +4,34 @@ import { getState } from './state.js';
 import { supabase } from './supabaseClient.js';
 
 /**
+ * Busca el perfil de un jugador en nuestra base de datos a partir de su user.id de Supabase Auth.
+ * Esta función es clave para saber si un usuario autenticado ya es miembro de un equipo.
+ * @param {object} user - El objeto 'user' que proporciona Supabase Auth en una sesión.
+ * @returns {Promise<object|null>} El objeto del jugador de nuestra tabla 'Jugadors' (que incluye el id_equip) o null si no se encuentra.
+ */
+export async function getPerfilJugador(user) {
+    if (!user) return null;
+    try {
+        const { data: jugador, error } = await supabase
+            .from('Jugadors')
+            .select('*') // Pedimos todos los datos del jugador
+            .eq('user_id', user.id) // La condición de búsqueda es el user_id
+            .single(); // Esperamos encontrar un único perfil por usuario
+
+        if (error && error.code !== 'PGRST116') { // Ignoramos el error "no se encontró ninguna fila"
+            throw new Error(error.message);
+        }
+        
+        return jugador;
+
+    } catch (error) {
+        console.error("Error al obtener el perfil del jugador:", error);
+        return null;
+    }
+}
+
+
+/**
  * Obtiene la lista de todos los jugadores de un equipo específico.
  * @param {number} team_pk_id - El ID numérico y permanente del equipo.
  * @returns {Promise<Array<object>|null>} Un array con los jugadores del equipo o null si hay un error.
