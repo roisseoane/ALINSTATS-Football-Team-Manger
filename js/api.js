@@ -288,21 +288,32 @@ export async function ejecutarAccionPostVoto(id_peticion) {
 
 /**
  * Busca y devuelve un equipo basado en su ID de usuario público (el que no es numérico).
+ * VERSIÓN REFACTORIZADA para evitar el error 406.
  * @param {string} idUsuarioEquipo - El ID público del equipo.
  * @returns {Promise<object|null>} El objeto del equipo o null si no se encuentra.
  */
 export async function getEquipoPorIdUsuario(idUsuarioEquipo) {
     try {
-        const { data: equipo, error } = await supabase
+        // Hacemos la petición sin .single()
+        const { data: equipos, error } = await supabase
             .from('Equips')
             .select('*')
-            .eq('id_usuari_equip', idUsuarioEquipo)
-            .single();
+            .eq('id_usuari_equip', idUsuarioEquipo);
 
-        if (error && error.code !== 'PGRST116') { // PGRST116 = "exact-one-row-not-found", no es un error fatal
+        // Si hay un error de red o de base de datos, lo lanzamos.
+        if (error) {
             throw new Error(error.message);
         }
-        return equipo;
+
+        // Ahora, manejamos la lógica de "single" en nuestro código.
+        // Si la lista tiene exactamente un equipo, lo devolvemos.
+        if (equipos && equipos.length === 1) {
+            return equipos[0];
+        }
+
+        // Si la lista tiene más de uno (no debería pasar si el ID es único) o está vacía,
+        // consideramos que no se ha encontrado un resultado válido.
+        return null;
 
     } catch (error) {
         console.error("Error al buscar equipo por ID de usuario:", error);
