@@ -16,6 +16,77 @@ import { guardarEstadisticasPartido,
 import { handleTeamLoginSubmit } from './auth.js';
 
 // Utility Functions
+
+/**
+ * Muestra el segundo modal del flujo de login, permitiendo al usuario
+ * seleccionarse de una lista o registrarse como nuevo jugador.
+ * @param {object} equipo - El objeto del equipo al que el usuario intenta acceder.
+ */
+export async function mostrarLoginDeJugador(equipo) {
+    const { elements } = getState();
+
+    // Mostramos un estado de carga mientras buscamos los jugadores
+    elements.modal.content.innerHTML = `<p>Carregant jugadors de l'equip "${equipo.nom_equip}"...</p>`;
+    abrirModal(); // Aseguramos que el modal siga abierto o se abra
+
+    // Obtenemos la lista de jugadores de la API
+    const jugadores = await getJugadoresEquipo(equipo.id);
+
+    if (jugadores === null) {
+        elements.modal.content.innerHTML = `<p>Error al carregar la llista de jugadors.</p>`;
+        return;
+    }
+
+    // Construimos dinámicamente la lista de jugadores como botones
+    const listaJugadoresHtml = jugadores.length > 0
+        ? jugadores.map(j => `<button class="btn-jugador-existente" data-player-id="${j.id}">${j.nom_mostrat}</button>`).join('')
+        : "<p>Aquest equip encara no té jugadors. Sigues el primer!</p>";
+
+    // Creamos el HTML final del modal
+    const modalContent = `
+        <div class="modal-header">
+            <h2><i class="fas fa-user-check"></i> Qui ets?</h2>
+            <p class="modal-subtitle">Selecciona el teu nom o registra't si ets nou.</p>
+        </div>
+        <div class="lista-jugadores">
+            ${listaJugadoresHtml}
+        </div>
+        <hr>
+        <form id="form-new-player" class="form-login">
+            <div class="form-group">
+                <label for="new-player-name">...o introdueix el teu nom si ets nou</label>
+                <input type="text" id="new-player-name" class="form-control" placeholder="El teu nom">
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-paper-plane"></i> Sol·licitar Unir-se
+                </button>
+            </div>
+        </form>
+    `;
+
+    elements.modal.content.innerHTML = modalContent;
+
+    // AÑADIMOS LOS EVENT LISTENERS
+    // 1. Para los jugadores existentes
+    document.querySelectorAll('.btn-jugador-existente').forEach(button => {
+        button.addEventListener('click', (e) => {
+            const playerId = e.target.dataset.playerId;
+            handlePlayerSelection(equipo.id, playerId);
+        });
+    });
+
+    // 2. Para el formulario de nuevo jugador
+    const form = document.getElementById('form-new-player');
+    form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const newName = document.getElementById('new-player-name').value.trim();
+        if (newName) {
+            handleNewPlayerSubmit(equipo.id, newName);
+        }
+    });
+}
+
 export function abrirModal() {
     const { elements } = getState();
     elements.modal.backdrop.classList.add('visible');
