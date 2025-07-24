@@ -4,6 +4,44 @@ import { getState } from './state.js';
 import { supabase } from './supabaseClient.js';
 
 /**
+ * Crea un nuevo equipo y añade a su primer jugador.
+ * Esta función es crítica para el flujo de registro inicial.
+ * @param {string} idUsuarioEquipo - El ID público que el equipo usará para el login.
+ * @param {string} nombreEquipo - El nombre completo del nuevo equipo.
+ * @param {string} nombrePrimerJugador - El nombre del jugador que está creando el equipo.
+ * @returns {Promise<object|null>} Un objeto con los datos del nuevo equipo y del nuevo jugador, o null si falla.
+ */
+export async function crearNuevoEquipoConPrimerJugador(idUsuarioEquipo, nombreEquipo, nombrePrimerJugador) {
+    try {
+        // Paso 1: Crear el equipo
+        const { data: nuevoEquipo, error: errorEquipo } = await supabase
+            .from('Equips')
+            .insert({ id_usuari_equip: idUsuarioEquipo, nom_equip: nombreEquipo })
+            .select()
+            .single();
+
+        if (errorEquipo) throw new Error(`Error al crear el equipo: ${errorEquipo.message}`);
+
+        // Paso 2: Añadir al primer jugador usando el ID del equipo recién creado
+        const { data: nuevoJugador, error: errorJugador } = await supabase
+            .from('Jugadors')
+            .insert({ id_equip: nuevoEquipo.id, nom_mostrat: nombrePrimerJugador })
+            .select()
+            .single();
+
+        if (errorJugador) throw new Error(`Error al añadir al primer jugador: ${errorJugador.message}`);
+
+        console.log("Equipo y primer jugador creados con éxito.");
+        return { equipo: nuevoEquipo, jugador: nuevoJugador };
+
+    } catch (error) {
+        console.error("Error en la función crearNuevoEquipoConPrimerJugador:", error);
+        alert("No se pudo completar el registro del nuevo equipo.");
+        return null;
+    }
+}
+
+/**
  * Obtiene la lista de todos los jugadores de un equipo específico.
  * @param {number} team_pk_id - El ID numérico y permanente del equipo.
  * @returns {Promise<Array<object>|null>} Un array con los jugadores del equipo o null si hay un error.
