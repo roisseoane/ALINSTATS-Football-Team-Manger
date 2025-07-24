@@ -316,6 +316,7 @@ export function activarTab(tab) {
     elements.sections.alineacio.style.display = 'none';
     elements.sections.estadistiques.style.display = 'none';
     elements.sections.clips.style.display = 'none';
+    elements.sections.configuracion.style.display = 'none';
 
     // Gestionar visibilidad del carrusel
     document.querySelector('.carrusel-container').style.display = tab === 'alineacio' ? 'block' : 'none';
@@ -329,6 +330,7 @@ export function activarTab(tab) {
     elements.nav.btnEstadistiques.classList.remove('active');
     elements.nav.btnAlineacio.classList.remove('active');
     elements.nav.btnClips.classList.remove('active');
+    elements.nav.btnConfiguracion.classList.remove('active');
 
     // Hacer scroll al inicio de la página
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -348,6 +350,11 @@ export function activarTab(tab) {
         // Actualizar el selector de clips antes de renderizar
         actualizarSelectorClips();
         renderizarClips();
+    } else if (tab === 'configuracion') {
+        elements.sections.configuracion.style.display = 'block';
+        elements.nav.btnConfiguracion.classList.add('active');
+        // Aquí podríamos llamar a una función que renderice el contenido de la configuración
+        // renderizarContenidoConfiguracion(); 
     }
 
     // Actualizar el estado de los botones
