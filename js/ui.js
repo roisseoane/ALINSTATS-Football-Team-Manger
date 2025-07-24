@@ -34,7 +34,7 @@ export function cerrarModal() {
     }
 }
 
-export function mostrarModalID() {
+export function mostrarLoginDeEquipo() {
     const teamIdModal = document.getElementById('team-id-modal');
     const backdrop = document.getElementById('modal-backdrop'); // Necesitamos el fondo también
 
