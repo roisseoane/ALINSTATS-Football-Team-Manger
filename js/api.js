@@ -32,24 +32,41 @@ export async function getNumeroDeJugadores(team_pk_id) {
  * @param {string} nombreJugador - El nombre del nuevo jugador.
  * @returns {Promise<object|null>} El objeto del nuevo jugador creado o null si hay un error.
  */
+/**
+ * Añade un jugador directamente a un equipo, sin pasar por el sistema de peticiones.
+ * Se usa para el primer miembro de un equipo.
+ * VERSIÓN REFACTORIZADA para evitar el uso de .single().
+ * @param {number} team_pk_id - El ID del equipo.
+ * @param {string} nombreJugador - El nombre del nuevo jugador.
+ * @returns {Promise<object|null>} El objeto del nuevo jugador creado o null si hay un error.
+ */
 export async function añadirJugadorDirectamente(team_pk_id, nombreJugador) {
     if (!team_pk_id || !nombreJugador) return null;
     try {
-        const { data: nuevoJugador, error } = await supabase
+        // Hacemos el INSERT y pedimos que nos devuelva la fila insertada, sin .single()
+        const { data: nuevosJugadores, error } = await supabase
             .from('Jugadors')
             .insert({ id_equip: team_pk_id, nom_mostrat: nombreJugador })
-            .select()
-            .single();
+            .select();
 
-        if (error) throw new Error(error.message);
-        return nuevoJugador;
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        // Manejamos la lógica en nuestro código: si la inserción fue exitosa,
+        // la base de datos nos devolverá un array con el nuevo jugador.
+        if (nuevosJugadores && nuevosJugadores.length === 1) {
+            return nuevosJugadores[0]; // Devolvemos el objeto del jugador
+        }
+
+        // Si por alguna razón no se devuelve el jugador, consideramos que falló.
+        return null;
 
     } catch (error) {
         console.error("Error al añadir jugador directamente:", error);
         return null;
     }
 }
-
 /**
  * Crea un nuevo equipo y añade a su primer jugador.
  * Esta función es crítica para el flujo de registro inicial.
