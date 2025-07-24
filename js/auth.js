@@ -286,27 +286,34 @@ async function iniciarFlujoDeAutenticacion() {
 
     // CASO 1: El usuario tiene una petición de unión pendiente
     if (id_peticion_pendiente) {
-        console.log("Se detectó una petición pendiente. Comprobando estado...");
-        const estado = await comprobarEstadoPeticion(id_peticion_pendiente);
+    console.log("Se detectó una petición pendiente. Comprobando estado...");
+    
+    // Obtenemos el objeto completo de la petición
+    const peticion = await comprobarEstadoPeticion(id_peticion_pendiente);
 
-        if (estado === 'aprobada') {
-            // ¡Felicidades! La petición fue aprobada.
-            // Aquí deberíamos ejecutar la lógica para finalizar el alta del jugador,
-            // obtener su nuevo player_pk_id, guardarlo y limpiar la petición pendiente.
-            // Por ahora, lo dejamos pendiente para implementarlo junto con la UI.
-            console.log("¡Tu solicitud fue aprobada! Implementar lógica de login final.");
-            // TODO: Llamar a una función que finalice el alta, actualice localStorage y recargue la app.
+    if (peticion && peticion.estat === 'aprobada') {
+        // ... Lógica para cuando está aprobada ...
+        console.log("¡Tu solicitud fue aprobada! Implementar lógica de login final.");
 
-        } else if (estado === 'rechazada') {
-            alert("Tu solicitud para unirte al equipo ha sido rechazada.");
-            localStorage.removeItem('id_peticion_pendiente');
-            mostrarLoginDeEquipo(); // Vuelve al inicio
-        } else {
-            // Sigue pendiente
-            mostrarPantallaDeEspera(id_peticion_pendiente);
-        }
-        return; // Detenemos el flujo aquí
+    } else if (peticion && peticion.estat === 'rechazada') {
+        // ... Lógica para cuando está rechazada ...
+        alert("Tu solicitud para unirte al equipo ha sido rechazada.");
+        localStorage.removeItem('id_peticion_pendiente');
+        mostrarLoginDeEquipo(); 
+
+    } else if (peticion) { 
+        // Si la petición existe y no está aprobada/rechazada, sigue pendiente
+        // ANTES: mostrarPantallaDeEspera(id_peticion_pendiente);
+        // AHORA (CORREGIDO):
+        mostrarPantallaDeEspera(peticion); // <-- Pasamos el objeto 'peticion' completo
+
+    } else {
+        // La petición no fue encontrada, limpiamos el localStorage
+        localStorage.removeItem('id_peticion_pendiente');
+        mostrarLoginDeEquipo();
     }
+    return;
+}
 
     // CASO 2: El usuario tiene credenciales de sesión guardadas
     if (team_pk_id && player_pk_id) {
