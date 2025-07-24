@@ -491,7 +491,6 @@ export function mostrarEstadisticas(jugadorId) {
 
 // Importa la nueva función que hemos creado y también getState
 import { crearPartidoEnSupabase } from './api.js';
-import { getState, addPartido } from './state.js';
 
 
 export function crearNuevoPartido() {
