@@ -1,10 +1,21 @@
 // js/auth.js - VERSIÓN CORREGIDA
+import {
+    validarSesionJugador,
+    obtenerPeticionesPendientes,
+    comprobarEstadoPeticion,
+    cargarDatosDelEquipo } from './api.js';
 
-import { supabase } from './supabaseClient.js';
+import {
+    // Estas funciones de UI aún no existen, las crearemos en el siguiente paso
+    mostrarLoginDeEquipo,
+    mostrarLoginDeJugador,
+    mostrarPantallaDeEspera,
+    mostrarModalDeVotacion,
+    mostrarErrorDeSesionYLimpiarStorage,
+    cerrarModal } from './ui.js';
+
 import { inicializarEstado } from './state.js';
-import { mostrarModalID, cerrarModal } from './ui.js';
 import { inicializarUIPrincipal } from './main.js';
-import { cargarDatosDelEquipo } from './api.js';
 
 // --- FUNCIONES ---
 
