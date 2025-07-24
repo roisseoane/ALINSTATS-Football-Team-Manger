@@ -352,6 +352,19 @@ async function iniciarFlujoDeAutenticacion() {
 
         if (esValido) {
             console.log("Sesión válida.");
+
+            // PASO 1: Cargamos los datos básicos del equipo AHORA.
+            const datosIniciales = await cargarDatosDelEquipo(team_pk_id);
+            if (!datosIniciales) {
+                // Si la carga falla, detenemos el flujo.
+                alert("Error al carregar les dades de l'equip.");
+                return;
+            }
+
+            // PASO 2: Inicializamos el estado AHORA, incluyendo el ID del jugador actual.
+            // Le pasamos los datos del equipo y le añadimos el player_pk_id que ya tenemos.
+            inicializarEstado({ ...datosIniciales, player_pk_id: player_pk_id });
+            
             // La sesión es correcta, ahora comprobamos si tiene que votar
             const peticiones = await obtenerPeticionesPendientes(team_pk_id, player_pk_id);
 
@@ -363,7 +376,6 @@ async function iniciarFlujoDeAutenticacion() {
                 // Si no hay nada que votar, cargamos la aplicación principal
                 console.log("No hay peticiones pendientes. Cargando UI principal.");
                 const datosIniciales = await cargarDatosDelEquipo(team_pk_id); // Asumimos que cargarDatosDelEquipo usa el pk_id
-                inicializarEstado(datosIniciales);
                 inicializarUIPrincipal();
             }
         } else {
