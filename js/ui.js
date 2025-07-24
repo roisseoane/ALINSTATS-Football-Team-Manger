@@ -9,7 +9,6 @@ import {
     setJugadoresDisponibles
 } from './state.js';
 import { generarMejorAlineacion } from './core.js';
-import { guardarDatosEnSupabase } from './api.js';
 import { mostrarGraficasJugador } from './charts.js';
 import { guardarEstadisticasPartido,
          getJugadoresEquipo} from './api.js';
