@@ -7,7 +7,8 @@ import {
     getEquipoPorIdUsuario,
     crearPeticion,
     registrarVoto,
-    ejecutarAccionPostVoto } from './api.js';
+    ejecutarAccionPostVoto,
+    crearNuevoEquipoConPrimerJugador } from './api.js';
 
 import {
     // Estas funciones de UI aún no existen, las crearemos en el siguiente paso
@@ -246,10 +247,26 @@ export async function handleTeamLoginSubmit(e) {
         // El equipo no existe. Podríamos ofrecer crearlo aquí.
         const crear = confirm(`L'equip amb l'ID "${idUsuarioEquipo}" no existeix. Vols crear-lo?`);
         if (crear) {
-            // Aquí iría la lógica para crear un nuevo equipo,
-            // que también es una petición grupal si ya hay gente...
-            // Por ahora, lo dejamos simple.
-            console.log("TODO: Implementar flujo de creación de equipo.");
+            const nombreEquipo = prompt("Introdueix el nom complet del teu nou equip:");
+            if (!nombreEquipo) return; // Si el usuario cancela, no hacemos nada
+
+            const nombreJugador = prompt("Perfecte. Ara, introdueix el teu nom de jugador:");
+            if (!nombreJugador) return; // Si el usuario cancela, no hacemos nada
+
+            // Llamamos a la nueva función de la API
+            const resultado = await crearNuevoEquipoConPrimerJugador(idUsuarioEquipo, nombreEquipo, nombreJugador);
+
+            if (resultado) {
+                // Si todo fue bien, guardamos las nuevas credenciales permanentes
+                localStorage.setItem('team_pk_id', resultado.equipo.id);
+                localStorage.setItem('player_pk_id', resultado.jugador.id);
+                
+                alert(`Equip "${nombreEquipo}" creat amb èxit! Benvingut, ${nombreJugador}.`);
+                
+                // Recargamos la página. El flujo de autenticación ahora detectará
+                // las nuevas credenciales y cargará la aplicación principal.
+                window.location.reload();
+            }
         }
     }
 }
