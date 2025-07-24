@@ -23,6 +23,67 @@ import { handleTeamLoginSubmit,
 // Utility Functions
 
 /**
+ * Muestra la pantalla de inicio de sesión principal, centrada en la autenticación por correo.
+ */
+export function mostrarPantallaDeLogin() {
+    const { elements } = getState();
+
+    // Ocultamos cualquier sección principal de la app que pudiera estar visible
+    document.querySelector('main').classList.remove('visible');
+    document.querySelector('.carrusel-container').classList.remove('visible');
+    document.querySelector('.button-container').classList.remove('visible');
+
+    // Creamos el HTML para el nuevo modal de login
+    const modalContent = `
+        <div class="modal-header">
+            <h2><i class="fas fa-sign-in-alt"></i> Benvingut a ALINSTATS</h2>
+            <p class="modal-subtitle">Introdueix el teu correu electrònic per accedir o registrar-te.</p>
+        </div>
+        <form id="form-magic-link" class="form-login">
+            <div class="form-group">
+                <label for="email-input">Correu Electrònic</label>
+                <input type="email" id="email-input" class="form-control" required placeholder="el.teu@correu.com">
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-magic"></i> Enviar enllaç d'accés
+                </button>
+            </div>
+        </form>
+    `;
+
+    // Inyectamos el contenido en el popup y lo hacemos visible
+    elements.modal.content.innerHTML = modalContent;
+    elements.modal.backdrop.classList.add('visible');
+    elements.modal.popup.classList.add('visible');
+
+    // Añadimos el listener para el envío del formulario
+    const form = document.getElementById('form-magic-link');
+    if (form) {
+        form.addEventListener('submit', handleLoginRequest);
+    }
+}
+
+/**
+ * Muestra un mensaje de éxito después de que el usuario solicita el Magic Link.
+ */
+export function mostrarMensajeRevisaTuCorreo(email) {
+    const { elements } = getState();
+    const modalContent = `
+        <div class="modal-header">
+            <h2><i class="fas fa-envelope-open-text"></i> Revisa el teu correu</h2>
+            <p class="modal-subtitle">Hem enviat un enllaç d'accés a <strong>${email}</strong>.</p>
+        </div>
+        <div class="espera-info">
+            <p>Fes clic a l'enllaç per iniciar sessió de manera segura.</p>
+            <p>Pots tancar aquesta pestanya.</p>
+        </div>
+    `;
+    elements.modal.content.innerHTML = modalContent;
+}
+
+
+/**
  * Muestra un modal informando que la sesión del usuario es inválida (ha sido expulsado)
  * y limpia las credenciales del localStorage para prevenir bucles de error.
  */
@@ -205,76 +266,6 @@ export function mostrarPantallaDeEspera(peticion) {
     document.getElementById('btn-cancel-request').addEventListener('click', handleCancelRequest);
 }
 
-/**
- * Muestra el segundo modal del flujo de login, permitiendo al usuario
- * seleccionarse de una lista o registrarse como nuevo jugador.
- * @param {object} equipo - El objeto del equipo al que el usuario intenta acceder.
- */
-export async function mostrarLoginDeJugador(equipo) {
-    const { elements } = getState();
-
-    // Mostramos un estado de carga mientras buscamos los jugadores
-    elements.modal.content.innerHTML = `<p>Carregant jugadors de l'equip "${equipo.nom_equip}"...</p>`;
-    abrirModal(); // Aseguramos que el modal siga abierto o se abra
-
-    // Obtenemos la lista de jugadores de la API
-    const jugadores = await getJugadoresEquipo(equipo.id);
-
-    if (jugadores === null) {
-        elements.modal.content.innerHTML = `<p>Error al carregar la llista de jugadors.</p>`;
-        return;
-    }
-
-    // Construimos dinámicamente la lista de jugadores como botones
-    const listaJugadoresHtml = jugadores.length > 0
-        ? jugadores.map(j => `<button class="btn-jugador-existente" data-player-id="${j.id}">${j.nom_mostrat}</button>`).join('')
-        : "<p>Aquest equip encara no té jugadors. Sigues el primer!</p>";
-
-    // Creamos el HTML final del modal
-    const modalContent = `
-        <div class="modal-header">
-            <h2><i class="fas fa-user-check"></i> Qui ets?</h2>
-            <p class="modal-subtitle">Selecciona el teu nom o registra't si ets nou.</p>
-        </div>
-        <div class="lista-jugadores">
-            ${listaJugadoresHtml}
-        </div>
-        <hr>
-        <form id="form-new-player" class="form-login">
-            <div class="form-group">
-                <label for="new-player-name">...o introdueix el teu nom si ets nou</label>
-                <input type="text" id="new-player-name" class="form-control" placeholder="El teu nom">
-            </div>
-            <div class="form-actions">
-                <button type="submit" class="btn-primary">
-                    <i class="fas fa-paper-plane"></i> Sol·licitar Unir-se
-                </button>
-            </div>
-        </form>
-    `;
-
-    elements.modal.content.innerHTML = modalContent;
-
-    // AÑADIMOS LOS EVENT LISTENERS
-    // 1. Para los jugadores existentes
-    document.querySelectorAll('.btn-jugador-existente').forEach(button => {
-        button.addEventListener('click', (e) => {
-            const playerId = e.target.dataset.playerId;
-            handlePlayerSelection(equipo.id, playerId);
-        });
-    });
-
-    // 2. Para el formulario de nuevo jugador
-    const form = document.getElementById('form-new-player');
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const newName = document.getElementById('new-player-name').value.trim();
-        if (newName) {
-            handleNewPlayerSubmit(equipo.id, newName);
-        }
-    });
-}
-
 export function abrirModal() {
     const { elements } = getState();
     elements.modal.backdrop.classList.add('visible');
@@ -292,44 +283,6 @@ export function cerrarModal() {
     const teamIdModal = document.getElementById('team-id-modal');
     if (teamIdModal) {
         teamIdModal.classList.remove('visible');
-    }
-}
-
-/**
- * Muestra el primer modal del flujo de login, pidiendo el ID de usuario del equipo.
- */
-export function mostrarLoginDeEquipo() {
-    const { elements } = getState(); // Asumimos que initElements ya se ha llamado
-
-    // Reutilizamos el modal genérico que ya tienes en index.html
-    const modalContent = `
-        <div class="modal-header">
-            <h2><i class="fas fa-users"></i> Accés a l'Equip</h2>
-            <p class="modal-subtitle">Introdueix l'identificador del teu equip per començar.</p>
-        </div>
-        <form id="form-team-login" class="form-login">
-            <div class="form-group">
-                <label for="team-id-input">ID de l'Equip</label>
-                <input type="text" id="team-id-input" class="form-control" required placeholder="Ex: fs_vic_2024">
-            </div>
-            <div class="form-actions">
-                <button type="submit" class="btn-primary">
-                    <i class="fas fa-arrow-right"></i> Següent
-                </button>
-            </div>
-        </form>
-    `;
-
-    // Inyectamos el contenido en el popup y lo hacemos visible
-    elements.modal.content.innerHTML = modalContent;
-    elements.modal.backdrop.classList.add('visible');
-    elements.modal.popup.classList.add('visible');
-
-    // Añadimos el listener para el envío del formulario
-    const form = document.getElementById('form-team-login');
-    if (form) {
-        // Adjuntamos una función que definiremos en auth.js
-        form.addEventListener('submit', handleTeamLoginSubmit);
     }
 }
 
