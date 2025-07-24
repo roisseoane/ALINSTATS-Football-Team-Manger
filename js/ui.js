@@ -24,6 +24,48 @@ import { handleTeamLoginSubmit,
 // Utility Functions
 
 /**
+ * Muestra una pantalla de bienvenida a los usuarios autenticados que aún no tienen un perfil.
+ * Les ofrece las opciones para crear un equipo o unirse a uno existente.
+ * @param {object} user - El objeto 'user' de Supabase Auth.
+ */
+export function mostrarPantallaDeBienvenida(user) {
+    const { elements } = getState();
+
+    // Ocultamos las secciones principales de la app
+    document.querySelector('main').classList.remove('visible');
+    document.querySelector('.carrusel-container').classList.remove('visible');
+    document.querySelector('.button-container').classList.remove('visible');
+
+    const modalContent = `
+        <div class="modal-header">
+            <h2><i class="fas fa-user-astronaut"></i> Benvingut, ${user.email.split('@')[0]}!</h2>
+            <p class="modal-subtitle">La teva identitat ha estat verificada. Què vols fer ara?</p>
+        </div>
+        <div class="onboarding-options">
+            <div class="config-card">
+                <h3><i class="fas fa-users-cog"></i> Crear un nou equip</h3>
+                <p>Crea un nou equip des de zero i converteix-te en el seu primer membre.</p>
+                <form id="form-create-team">
+                    <button type="submit" class="btn-primary">Crear Equip</button>
+                </form>
+            </div>
+            <div class="config-card">
+                <h3><i class="fas fa-search-location"></i> Unir-se a un equip existent</h3>
+                <p>Si ja tens un ID d'equip, introdueix-lo aquí per sol·licitar unir-te.</p>
+                <form id="form-join-team">
+                    <button type="submit" class="btn-secondary">Unir-se a Equip</button>
+                </form>
+            </div>
+        </div>
+    `;
+
+    elements.modal.content.innerHTML = modalContent;
+    abrirModal();
+
+    // TODO: Añadir los listeners a los formularios 'form-create-team' y 'form-join-team'
+}
+
+/**
  * Muestra la pantalla de inicio de sesión principal, centrada en la autenticación por correo.
  */
 export function mostrarPantallaDeLogin() {
