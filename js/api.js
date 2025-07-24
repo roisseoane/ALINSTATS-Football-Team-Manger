@@ -114,14 +114,14 @@ export async function crearPeticion(id_equip, id_creador, tipo, metadata) {
 
     try {
         const { data: nuevaPeticion, error } = await supabase
-            .from('Peticiones')
+            .from('Peticions')
             .insert([
                 {
                     id_equip: id_equip,
                     id_creador: id_creador,
                     tipo: tipo,
                     metadata: metadata,
-                    estado: 'pendiente' // Todas las peticiones empiezan como pendientes
+                    estat: 'pendiente' // Todas las peticiones empiezan como pendientes
                 }
             ])
             .select() // Devuelve la fila recién creada
