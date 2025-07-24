@@ -17,7 +17,8 @@ import { handleTeamLoginSubmit,
          handleCheckStatus,
          handleCancelRequest,
          handleVoteSubmit,
-         handleRemovePlayerRequest } from './auth.js';
+         handleRemovePlayerRequest,
+         handleChangeTeamIdRequest } from './auth.js';
 
 // Utility Functions
 
