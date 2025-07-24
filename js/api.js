@@ -227,6 +227,30 @@ export async function ejecutarAccionPostVoto(id_peticion) {
 }
 
 /**
+ * Busca y devuelve un equipo basado en su ID de usuario público (el que no es numérico).
+ * @param {string} idUsuarioEquipo - El ID público del equipo.
+ * @returns {Promise<object|null>} El objeto del equipo o null si no se encuentra.
+ */
+export async function getEquipoPorIdUsuario(idUsuarioEquipo) {
+    try {
+        const { data: equipo, error } = await supabase
+            .from('Equips')
+            .select('*')
+            .eq('id_usuari_equip', idUsuarioEquipo)
+            .single();
+
+        if (error && error.code !== 'PGRST116') { // PGRST116 = "exact-one-row-not-found", no es un error fatal
+            throw new Error(error.message);
+        }
+        return equipo;
+
+    } catch (error) {
+        console.error("Error al buscar equipo por ID de usuario:", error);
+        return null;
+    }
+}
+
+/**
  * Carga los datos iniciales del equipo desde la base de datos relacional de Supabase.
  * Esta versión está refactorizada para trabajar con tablas separadas.
  */
