@@ -22,6 +22,43 @@ import { handleTeamLoginSubmit,
 // Utility Functions
 
 /**
+ * Muestra un modal informando que la sesión del usuario es inválida (ha sido expulsado)
+ * y limpia las credenciales del localStorage para prevenir bucles de error.
+ */
+export function mostrarErrorDeSesionYLimpiarStorage() {
+    // Primero, limpiamos las credenciales para evitar que el usuario se quede atascado
+    localStorage.removeItem('team_pk_id');
+    localStorage.removeItem('player_pk_id');
+    localStorage.removeItem('id_usuari_equip'); // También limpiamos el ID antiguo por si acaso
+
+    const { elements } = getState();
+
+    const modalContent = `
+        <div class="modal-header">
+            <h2><i class="fas fa-user-slash"></i> Accés Revocat</h2>
+            <p class="modal-subtitle">La teva sessió ja no és vàlida.</p>
+        </div>
+        <div class="espera-info">
+            <p>Ja no ets membre d'aquest equip. Si creus que això és un error, contacta amb els membres de l'equip.</p>
+        </div>
+        <div class="form-actions">
+            <button id="btn-logout-confirm" class="btn-primary">
+                <i class="fas fa-check"></i> Entès
+            </button>
+        </div>
+    `;
+
+    elements.modal.content.innerHTML = modalContent;
+    abrirModal();
+
+    // Cuando el usuario haga clic en "Entès", recargamos la página.
+    // Como el localStorage está limpio, se le mostrará el login de equipo inicial.
+    document.getElementById('btn-logout-confirm').addEventListener('click', () => {
+        window.location.reload();
+    });
+}
+
+/**
  * Renderiza el contenido de la pantalla de configuración,
  * empezando por el panel de gestión de jugadores.
  */
