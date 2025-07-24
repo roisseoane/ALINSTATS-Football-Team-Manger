@@ -5,6 +5,7 @@ import { generarMejorAlineacion } from './core.js'; // <-- CAMBIO CLAVE: Importa
 
 const state = {
     teamId: null,
+    currentUser: null,
     partidos: [],
     jugadoresDisponibles: [],
     partitSeleccionat: 'global',
@@ -72,6 +73,7 @@ export function inicializarEstado(datos) {
     state.inicialesPosicion = datos.inicialesPosicion;
     state.coordenadasPosiciones = datos.coordenadasPosiciones;
     state.partidos = datos.partidos || [];
+    state.currentUser = { player_pk_id: datos.player_pk_id };
     state.partitSeleccionat = datos.partitSeleccionat || 'global';
     state.jugadoresDisponibles = state.plantilla.map(j => j.id); // Seleccionar todos por defecto
 }
