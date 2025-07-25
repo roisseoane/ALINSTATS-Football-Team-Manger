@@ -73,11 +73,13 @@ export function inicializarEstado(datos) {
     state.inicialesPosicion = datos.inicialesPosicion;
     state.coordenadasPosiciones = datos.coordenadasPosiciones;
     state.partidos = datos.partidos || [];
-    state.currentUser = { player_pk_id: datos.player_pk_id };
-    state.team_pk_id = datos.teamId; // Guardamos el ID permanente del equipo
-    state.team_id_publico = datos.id_usuari_equip;
-    state.partitSeleccionat = datos.partitSeleccionat || 'global';
-    state.jugadoresDisponibles = state.plantilla.map(j => j.id); // Seleccionar todos por defecto
+    state.partitSeleccionat = 'global';
+    state.jugadoresDisponibles = datos.plantilla.map(j => j.id);
+
+    
+    state.currentUser = datos.currentUser;
+    state.team_pk_id = datos.teamId;
+    state.team_id_publico = datos.id_usuari_equip; // Asegúrate de que api.js lo devuelve
 }
 
 // MUTATOR FUNCTIONS
