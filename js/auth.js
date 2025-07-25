@@ -51,22 +51,32 @@ window.handleLoginRequest = handleLoginRequest;
 // --- EL NUEVO CORAZÓN DE LA APLICACIÓN ---
 // Este listener es el nuevo punto de entrada. Se ejecuta cada vez que el estado
 // de autenticación del usuario cambia (inicia sesión, cierra sesión, etc.).
-supabase.auth.onAuthStateChange((event, session) => {
-    console.log("Canvi d'estat d'autenticació:", event, session);
-    
-    // Ocultamos el modal de login, ya que la autenticación está en proceso o completada.
-    const { elements } = getState();
-    if(elements.modal.popup.classList.contains('visible')) {
-        cerrarModal();
-    }
+// Esperamos a que todo el HTML esté cargado antes de ejecutar cualquier script.
+document.addEventListener('DOMContentLoaded', () => {
 
-    if (session && session.user) {
-        // Si hay una sesión, significa que el usuario ha hecho clic en el Magic Link
-        // y ha sido verificado. Cargamos la aplicación principal.
-        cargarYRenderizarApp(session.user);
-    } else {
-        // Si no hay sesión, mostramos la pantalla de login.
-        // Esto se ejecutará la primera vez que se cargue la app.
-        mostrarPantallaDeLogin();
-    }
+    // 1. INICIALIZAMOS LOS ELEMENTOS PRIMERO
+    // Con esto, nos aseguramos de que el estado conoce todos los elementos del DOM
+    // desde el primer momento, antes de que cualquier otra lógica se ejecute.
+    initElements();
+
+    // 2. AHORA CONFIGURAMOS EL LISTENER DE AUTENTICACIÓN
+    // Este listener es el nuevo corazón de la aplicación.
+    supabase.auth.onAuthStateChange((event, session) => {
+        console.log("Canvi d'estat d'autenticació:", event, session);
+        
+        const { elements } = getState();
+        // Esta comprobación ahora es segura porque initElements() ya se ha ejecutado.
+        if (elements.modal.popup.classList.contains('visible')) {
+            cerrarModal();
+        }
+
+        if (session && session.user) {
+            // Si hay una sesión, cargamos la aplicación principal.
+            cargarYRenderizarApp(session.user);
+        } else {
+            // Si no hay sesión, mostramos la pantalla de login.
+            mostrarPantallaDeLogin();
+        }
+    });
+
 });
