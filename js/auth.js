@@ -1,9 +1,9 @@
 // js/auth.js - NUEVA VERSIÓN CON SUPABASE AUTH
 
 import { supabase } from './supabaseClient.js';
-import { mostrarPantallaDeLogin, mostrarMensajeRevisaTuCorreo } from './ui.js';
+import { mostrarPantallaDeLogin, mostrarMensajeRevisaTuCorreo, cerrarModal } from './ui.js';
 import { cargarYRenderizarApp } from './main.js'; // Asumimos que esta función existirá en main.js
-import { getState, cerrarModal } from './ui.js';
+import { getState } from './state.js';
 
 /**
  * Maneja el envío del formulario de login. Llama a Supabase para enviar el Magic Link.
