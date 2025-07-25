@@ -9,7 +9,7 @@ import { getState, cerrarModal } from './state.js';
  * Maneja el envío del formulario de login. Llama a Supabase para enviar el Magic Link.
  * @param {Event} e - El evento del formulario.
  */
-async function handleLoginRequest(e) {
+export async function handleLoginRequest(e) {
     e.preventDefault();
     const emailInput = document.getElementById('email-input');
     const email = emailInput.value.trim();
