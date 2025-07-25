@@ -383,9 +383,12 @@ export async function cargarDatosDelEquipo(teamId) {
                 estadistiques[actuacion.id_jugador] = actuacion.stats;
             });
             return {
-                ...partido, // Mantenemos los datos del partido (id, nom_oponent, etc.)
-                estadistiques: estadistiques // Añadimos el objeto de estadísticas reconstruido
-            };
+                teamId: teamId,
+                nomEquip: teamData.nom_equip,
+                id_usuari_equip: teamData.id_usuari_equip, // <-- Añade esta línea
+                plantilla: plantillaData || [],
+                // ... resto de propiedades
+                };
         });
 
         // Reconstruir el objeto de habilidades por posición
