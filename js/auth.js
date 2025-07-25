@@ -1,7 +1,7 @@
 // js/auth.js - NUEVA VERSIÓN CON SUPABASE AUTH
 
 import { supabase } from './supabaseClient.js';
-import { mostrarPantallaDeLogin, mostrarMensajeRevisaTuCorreo, cerrarModal } from './ui.js';
+import { mostrarPantallaDeLogin, mostrarPantallaDeVerificacionDeCodigo, cerrarModal } from './ui.js';
 import { cargarYRenderizarApp } from './main.js'; // Asumimos que esta función existirá en main.js
 import { getState, initElements } from './state.js';
 
@@ -36,9 +36,9 @@ export async function handleLoginRequest(e) {
             },
         });
         if (error) throw error;
-        mostrarMensajeRevisaTuCorreo(email);
+        mostrarPantallaDeVerificacionDeCodigo(email);
     } catch (error) {
-        console.error("Error en l'enviament del Magic Link:", error);
+        console.error("Error en l'enviament del codi:", error);
         alert(`Hi ha hagut un error: ${error.message}`);
         button.disabled = false;
         button.innerHTML = '<i class="fas fa-magic"></i> Enviar enllaç d\'accés';
