@@ -6,9 +6,19 @@ import { cargarYRenderizarApp } from './main.js'; // Asumimos que esta función 
 import { getState, initElements } from './state.js';
 
 /**
- * Maneja el envío del formulario de login. Llama a Supabase para enviar el Magic Link.
- * @param {Event} e - El evento del formulario.
+ * Una función auxiliar para ejecutar código solo cuando el DOM esté listo.
+ * Si ya está listo, lo ejecuta inmediatamente.
+ * @param {function} fn - La función a ejecutar.
  */
+function onDOMLoaded(fn) {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', fn);
+    } else {
+        fn();
+    }
+}
+
+// --- MANEJADOR DE LOGIN (SIN CAMBIOS) ---
 export async function handleLoginRequest(e) {
     e.preventDefault();
     const emailInput = document.getElementById('email-input');
@@ -22,19 +32,11 @@ export async function handleLoginRequest(e) {
         const { error } = await supabase.auth.signInWithOtp({
             email: email,
             options: {
-                // Opcional: a dónde redirigir al usuario después de hacer clic en el enlace.
-                // Debe ser una URL de tu sitio desplegado en Vercel.
-                emailRedirectTo: 'https://alinstats-football-team-manger.vercel.app'
+                emailRedirectTo: 'https://alinstats-football-team-manger.vercel.app',
             },
         });
-
-        if (error) {
-            throw error;
-        }
-
-        // Si todo va bien, mostramos el mensaje de éxito.
+        if (error) throw error;
         mostrarMensajeRevisaTuCorreo(email);
-
     } catch (error) {
         console.error("Error en l'enviament del Magic Link:", error);
         alert(`Hi ha hagut un error: ${error.message}`);
@@ -43,29 +45,19 @@ export async function handleLoginRequest(e) {
     }
 }
 
-// Hacemos la función accesible globalmente para el listener del formulario
-// (una forma sencilla de conectar UI y lógica sin importaciones circulares complejas)
-window.handleLoginRequest = handleLoginRequest;
+// --- PUNTO DE ENTRADA Y LÓGICA DE ARRANQUE ---
 
+// 1. Inicializamos los elementos del DOM en cuanto sea posible.
+onDOMLoaded(initElements);
 
-// --- EL NUEVO CORAZÓN DE LA APLICACIÓN ---
-// Este listener es el nuevo punto de entrada. Se ejecuta cada vez que el estado
-// de autenticación del usuario cambia (inicia sesión, cierra sesión, etc.).
-// Esperamos a que todo el HTML esté cargado antes de ejecutar cualquier script.
-document.addEventListener('DOMContentLoaded', () => {
+// 2. NOS SUSCRIBIMOS INMEDIATAMENTE a los cambios de autenticación.
+// Esto se ejecuta en cuanto el script se carga, asegurando que no perdemos el evento de redirección.
+supabase.auth.onAuthStateChange((event, session) => {
+    console.log("Canvi d'estat d'autenticació:", event, session);
 
-    // 1. INICIALIZAMOS LOS ELEMENTOS PRIMERO
-    // Con esto, nos aseguramos de que el estado conoce todos los elementos del DOM
-    // desde el primer momento, antes de que cualquier otra lógica se ejecute.
-    initElements();
-
-    // 2. AHORA CONFIGURAMOS EL LISTENER DE AUTENTICACIÓN
-    // Este listener es el nuevo corazón de la aplicación.
-    supabase.auth.onAuthStateChange((event, session) => {
-        console.log("Canvi d'estat d'autenticació:", event, session);
-        
+    // Las acciones que manipulan el DOM deben esperar a que esté listo.
+    onDOMLoaded(() => {
         const { elements } = getState();
-        // Esta comprobación ahora es segura porque initElements() ya se ha ejecutado.
         if (elements.modal.popup.classList.contains('visible')) {
             cerrarModal();
         }
@@ -78,5 +70,4 @@ document.addEventListener('DOMContentLoaded', () => {
             mostrarPantallaDeLogin();
         }
     });
-
 });
