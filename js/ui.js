@@ -303,23 +303,42 @@ export function mostrarPantallaDeLogin() {
 }
 
 /**
- * Muestra un mensaje de éxito después de que el usuario solicita el Magic Link.
+ * Muestra la pantalla para que el usuario introduzca el código de 6 dígitos
+ * que ha recibido en su correo electrónico.
+ * @param {string} email - El correo al que se ha enviado el código.
  */
-export function mostrarMensajeRevisaTuCorreo(email) {
+export function mostrarPantallaDeVerificacionDeCodigo(email) {
     const { elements } = getState();
+
     const modalContent = `
         <div class="modal-header">
-            <h2><i class="fas fa-envelope-open-text"></i> Revisa el teu correu</h2>
-            <p class="modal-subtitle">Hem enviat un enllaç d'accés a <strong>${email}</strong>.</p>
+            <h2><i class="fas fa-key"></i> Introdueix el teu codi</h2>
+            <p class="modal-subtitle">Hem enviat un codi de 6 dígits a <strong>${email}</strong>.</p>
         </div>
-        <div class="espera-info">
-            <p>Fes clic a l'enllaç per iniciar sessió de manera segura.</p>
-            <p>Pots tancar aquesta pestanya.</p>
-        </div>
+        <form id="form-verify-otp" class="form-login">
+            <div class="form-group">
+                <label for="otp-input">Codi de Verificació</label>
+                <input type="text" id="otp-input" class="form-control" required 
+                       placeholder="123456" pattern="[0-9]{6}" 
+                       title="El codi ha de tenir 6 dígits.">
+                <input type="hidden" id="email-for-otp" value="${email}">
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-check-circle"></i> Verificar i Entrar
+                </button>
+            </div>
+        </form>
     `;
     elements.modal.content.innerHTML = modalContent;
-}
 
+    // Añadimos el listener para el envío del formulario de verificación
+    const form = document.getElementById('form-verify-otp');
+    if (form) {
+        // Este manejador lo crearemos en el siguiente bloque en auth.js
+        form.addEventListener('submit', handleVerifyOtpSubmit);
+    }
+}
 
 /**
  * Muestra un modal informando que la sesión del usuario es inválida (ha sido expulsado)
