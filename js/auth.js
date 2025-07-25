@@ -45,6 +45,43 @@ export async function handleLoginRequest(e) {
     }
 }
 
+/**
+ * Maneja el envío del formulario de verificación de código (OTP).
+ * @param {Event} e - El evento del formulario.
+ */
+export async function handleVerifyOtpSubmit(e) {
+    e.preventDefault();
+    const email = document.getElementById('email-for-otp').value;
+    const otp = document.getElementById('otp-input').value.trim();
+    const button = e.target.querySelector('button[type="submit"]');
+
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificant...';
+
+    try {
+        // Esta es la llamada clave a Supabase para verificar el código
+        const { data, error } = await supabase.auth.verifyOtp({
+            email: email,
+            token: otp,
+            type: 'email', // Especificamos que es un OTP de tipo email
+        });
+
+        if (error) {
+            throw error;
+        }
+
+        // Si la verificación es exitosa, data contendrá la sesión del usuario.
+        // El listener onAuthStateChange se disparará automáticamente y cargará la app.
+        console.log("Codi verificat amb èxit!", data);
+
+    } catch (error) {
+        console.error("Error en la verificació del codi:", error);
+        alert("El codi introduït no és correcte. Si us plau, torna-ho a provar.");
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-check-circle"></i> Verificar i Entrar';
+    }
+}
+
 // --- PUNTO DE ENTRADA Y LÓGICA DE ARRANQUE ---
 
 // 1. Inicializamos los elementos del DOM en cuanto sea posible.
