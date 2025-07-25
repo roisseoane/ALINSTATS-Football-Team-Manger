@@ -14,14 +14,7 @@ import { guardarEstadisticasPartido,
          getJugadoresEquipo} from './api.js';
 import { crearEquipoYAsignarCreador, solicitarUnionAEquipo } from './api.js';
 
-import { handleTeamLoginSubmit,
-         handleCheckStatus,
-         handleCancelRequest,
-         handleVoteSubmit,
-         handleRemovePlayerRequest,
-         handleChangeTeamIdRequest,
-         handleNewPlayerSubmit,
-         handleLoginRequest } from './auth.js';
+import { handleLoginRequest } from './auth.js';
 
 // Utility Functions
 
