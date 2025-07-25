@@ -71,3 +71,24 @@ supabase.auth.onAuthStateChange((event, session) => {
         }
     });
 });
+
+// --- LA MAGIA PARA LA MISMA PESTAÑA ---
+// 3. NOS SUSCRIBIMOS INMEDIATAMENTE a los cambios en el localStorage.
+window.addEventListener('storage', (event) => {
+    // Escuchamos específicamente por la clave que usa Supabase para guardar la sesión.
+    if (event.key && event.key.includes('sb-') && event.key.endsWith('-auth-token')) {
+        console.log('¡Cambio de sesión detectado desde otra pestaña!');
+        
+        // Si se ha establecido una nueva sesión en otra pestaña...
+        if (event.newValue) {
+            // ...forzamos al cliente de Supabase en ESTA pestaña a recargar la sesión desde el storage.
+            supabase.auth.getSession().then(({ data: { session } }) => {
+                if (session && session.user) {
+                    console.log('Sesión recargada con éxito. Renderizando la aplicación.');
+                    // Llamamos a la misma función que si el login hubiera ocurrido aquí.
+                    onDOMLoaded(() => cargarYRenderizarApp(session.user));
+                }
+            });
+        }
+    }
+});
