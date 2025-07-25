@@ -3,6 +3,7 @@
 import { supabase } from './supabaseClient.js';
 import { mostrarPantallaDeLogin, mostrarMensajeRevisaTuCorreo } from './ui.js';
 import { cargarYRenderizarApp } from './main.js'; // Asumimos que esta función existirá en main.js
+import { getState, cerrarModal } from './state.js';
 
 /**
  * Maneja el envío del formulario de login. Llama a Supabase para enviar el Magic Link.
